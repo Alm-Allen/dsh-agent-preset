@@ -2,7 +2,7 @@
  * yinyu-stage：引玉的提示词与工具说明重排。
  *
  * 在 system-prompt/assemble 末端把 sections 收成一句 persona，并把共用执行政策、
- * tools:ptc-only 与 tools:sdk 移到第一个 runtime context：这一版的系统提示词必须严格只有那一句，
+ * tools:ptc-only、tools:sdk 与 run_code 用法引导移到第一个 runtime context：这一版的系统提示词必须严格只有那一句，
  * 工具声明只能住在这里。另在 agent/pre-step 把运行时上下文提到工作区指令之前。
  * 机制与取舍见 文档/机制/引玉.md。
  */
@@ -25,6 +25,20 @@ export const PTC_ONLY_SECTION = 'tools:ptc-only'
 /** PTC 生成的 SDK 声明段名。 */
 export const SDK_SECTION = 'tools:sdk'
 
+/** run_code 的用法引导：PTC 的 SDK 声明只说签名，怎么把多步压进一个程序要单独讲。 */
+export const TOOLING_GUIDE = `run_code is not only for batching calls — one program can carry a whole multi-step workflow, so push as much work as possible into it and cut the number of agent steps.
+- Read-only calls overlap under Promise.all; mutating calls run one at a time in submission order, so await any read that depends on one.
+- Search: probe several keywords or paths in one batch, then branch inside the same program on what matched. Return only the files, line numbers and match counts — raw output stays in the program.
+- Read, edit and verify inside one program; process a batch of files together and return the list of changes.
+- Print only the conclusion — long output gets truncated — and wrap a failing sub-call in try/catch to return the work already done.
+- Wait for a background job with \`job_output\`'s wait option instead of sleeping in a poll loop.`
+
+/** 表达风格：回答本身的用词与组织。与执行政策同住第一个 runtime context，随快照整条重发 */
+export const STYLE_GUIDE = `Describe things with concrete nouns, not metaphor, invented terms or cross-industry jargon; keep technical terms, identifiers and paths as they are.
+One thing per sentence and two sentences per line at most; put the second matter on its own line instead of squeezing it into parentheses.
+Stop when the point is made: do not restate the question, add a preamble, or repeat your conclusions at the end.
+Do not use emoji, arrows or decorative symbols like ★; bold only the key conclusion, never a whole paragraph.`
+
 /** 第一个 runtime context 的名字：共用执行政策 + PTC 工具说明。 */
 export const TOOLING_CONTEXT = 'yinyu:ptc-tooling'
 
@@ -33,14 +47,15 @@ const RUNTIME_CONTEXT_SOURCE = 'runtime-context'
 const WORKSPACE_INSTRUCTIONS_SOURCE = 'agent-instructions'
 
 /** 共用执行政策：安全边界、提问、成本与用户协作。四个预设各自保存一份正文，不要跨包 import */
-export const EXECUTION_POLICY = `Execution policy:
-Decide whether to act based only on reversibility and scope: reversible work within the current request (reading files, editing code, running tests, cleaning up temporary files you created in this task) is authorized—do it directly. Ask the user before irreversible operations or work outside the request (deleting or overwriting user data, rewriting git history, changing global configuration or credentials, installing dependencies, or touching content outside the workspace).
+export const EXECUTION_POLICY = `Reversible work that falls within the current request (reading files, editing code, running tests, and cleaning up temporary files you created during this session) should be done directly. For irreversible or out-of-scope actions (deleting or overwriting user data, rewriting Git history, modifying global configuration or credentials, installing dependencies, operating on content outside the workspace, etc.), ask the user first.
 
-The user is patient and will not be annoyed by questions that materially affect the work; if uncertainty would affect the approach, result, or acceptance, ask directly instead of guessing or silently second-guessing.
+The user is patient and will not become impatient because you ask questions. There is no need to rely on guesswork or repeatedly second-guess yourself in order to work things out—just ask directly.
 
-Do not sacrifice correctness to save tokens; context is compacted automatically after milestones, so focus on delivering efficiently and with quality. Quality means locating the root cause, making the smallest correct change, and verifying it—not a surface-level patch chosen to avoid work.
+Focus on completing tasks efficiently and with high quality, without worrying about cost.
 
-The user is your collaborator: during development, when a feature is still incomplete, when real-environment or human verification is needed, or when you genuinely lack reference material, tools, or runtime access, ask the user directly for testing, feedback, or support. Verify locally first when you can; never pretend you verified something, and do not silently carry the problem alone.`
+If a feature under development is not yet complete, requires verification in a real environment or visual verification by a human, or if information, tools, or runtime conditions are genuinely lacking, directly ask the user to help with testing, provide feedback, or offer support.
+
+When writing or editing files, you must use the write and edit tools.`
 
 /**
  * 把 sections 收成那一句 persona，并把执行政策与工具说明放到第一个 runtime context。
@@ -58,7 +73,7 @@ export function apply(ctx) {
 			const section = sections.find(candidate => candidate?.name === name)
 			return typeof section?.text === 'string' ? section.text : ''
 		}
-		const tooling = [EXECUTION_POLICY, readText(PTC_ONLY_SECTION), readText(SDK_SECTION)]
+		const tooling = [EXECUTION_POLICY, STYLE_GUIDE, readText(PTC_ONLY_SECTION), readText(SDK_SECTION), TOOLING_GUIDE]
 			.filter(text => text.length > 0)
 			.join('\n\n')
 		const previous = contexts.find(context => context?.name === TOOLING_CONTEXT)

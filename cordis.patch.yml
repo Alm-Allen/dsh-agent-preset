@@ -414,7 +414,7 @@
         id: 'true-mode'
         order: 4
         name: '引玉'
-        description: '极简模式的一句系统提示词 + PTC 的 run_code 工具环境：全程只发 You are a helpful software engineer assistant.；共用执行政策、PTC-only 规则与 standard 的完整 SDK 放在第一个 runtime context，经 run_code 调用全部工具。不做二轮注入、不做阶段切换。用于观察共用执行政策与工具环境是否影响「We need」人格。'
+        description: '极简模式的一句系统提示词 + PTC 的 run_code 工具环境：全程只发 You are a helpful software engineer assistant.；共用执行政策、PTC-only 规则、run_code 用法引导与 standard 的完整 SDK 放在第一个 runtime context，经 run_code 调用全部工具。不做二轮注入、不做阶段切换。用于观察共用执行政策与工具环境是否影响「We need」人格。'
         plugins:
           - id: persona
             name: '@deepseek-ai/dsh-persona'

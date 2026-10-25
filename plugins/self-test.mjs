@@ -142,8 +142,85 @@ equal(fallbacks.sort(), ['false', 'false', 'false', 'false', 'true'], '客户端
 	ok(entries['preset-yinyu'].disabled === false, '引玉重新打开时启用 Loader 条目')
 	const chatSource = await read('plugins/no-global-tools.mjs')
 	const zeroSource = await read('plugins/zero-injection.mjs')
-	ok(chatSource.includes('ctx.tools.restrict({ allow: [] })'), 'Chat 的 no-global-tools 仍清空继承工具')
+	// 对象字面量里的空白不作为契约，只认 restrict 一个空 allow
+	ok(/ctx\.tools\.restrict\(\{\s*allow:\s*\[\]\s*\}\)/.test(chatSource), 'Chat 的 no-global-tools 仍清空继承工具')
 	ok(zeroSource.includes('tools: []') && zeroSource.includes('contexts: []'), 'Chat 的 zero-injection 仍清空组装面')
+}
+
+// Chat 被 profile 覆盖行（插件管理页的条目开关）抢先启用时，仍要先摘掉再按顺序装回。
+// 这里的 loader 照真实组合来：profile 条目在 include 子组下，根 resolve 找不到，只能遍历 entries。
+{
+	const updates = []
+	const makeEntry = (id, disabled) => ({
+		id,
+		options: { id },
+		disabled,
+		async update(options) {
+			updates.push({ id, disabled: options.disabled })
+			this.disabled = options.disabled === true
+		},
+	})
+	const entries = {
+		'preset-minimal': makeEntry('preset-minimal', false),
+		'preset-chat': makeEntry('preset-chat', false),
+		'preset-yinyu': makeEntry('preset-yinyu', true),
+	}
+	const all = Object.values(entries)
+	const ctx = {
+		loader: {
+			entries() { return all },
+			resolve(id) { throw new Error('cannot resolve entry ' + id) },
+		},
+		on() {},
+		effect(effect) { const dispose = effect(); return typeof dispose === 'function' ? dispose : () => {} },
+		logger: { warn() {} },
+	}
+	applyPack(ctx, { yayan: false, cangjie: false, maliang: false, chat: true, yinyu: false })
+	await new Promise(resolve => setTimeout(resolve, 160))
+	const chatOff = updates.findIndex(update => update.id === 'preset-chat' && update.disabled === true)
+	const minimalOff = updates.findIndex(update => update.id === 'preset-minimal' && update.disabled === true)
+	const chatOn = updates.findIndex(update => update.id === 'preset-chat' && update.disabled === false)
+	ok(chatOff >= 0 && chatOff < minimalOff && chatOn > minimalOff, 'Chat 被外部启用时先摘掉，再停 minimal、再装回')
+}
+
+// 已经切换好的 Chat 不重启；启动收尾重载把状态冲回后，主插件要自己补一次同步
+{
+	const updates = []
+	const makeEntry = (id, disabled) => ({
+		id,
+		options: { id },
+		disabled,
+		async update(options) {
+			updates.push({ id, disabled: options.disabled })
+			this.disabled = options.disabled === true
+		},
+	})
+	const entries = {
+		'preset-minimal': makeEntry('preset-minimal', true),
+		'preset-chat': makeEntry('preset-chat', false),
+		'preset-yinyu': makeEntry('preset-yinyu', true),
+	}
+	const all = Object.values(entries)
+	const handlers = {}
+	const ctx = {
+		loader: {
+			entries() { return all },
+			resolve(id) { throw new Error('cannot resolve entry ' + id) },
+		},
+		on(name, handler) { (handlers[name] ??= []).push(handler) },
+		effect(effect) { const dispose = effect(); return typeof dispose === 'function' ? dispose : () => {} },
+		logger: { warn() {} },
+	}
+	applyPack(ctx, { yayan: false, cangjie: false, maliang: false, chat: true, yinyu: false })
+	await new Promise(resolve => setTimeout(resolve, 160))
+	ok(updates.length === 0, '已经切换好的 Chat 不会被反复重启')
+
+	// 模拟 profile 重载：条目按 patch 重新解析回初始值，然后 Loader 广播 partial-dispose
+	entries['preset-minimal'].disabled = false
+	entries['preset-chat'].disabled = true
+	for (const handler of handlers['loader/partial-dispose'] ?? []) handler()
+	await new Promise(resolve => setTimeout(resolve, 1400))
+	ok(entries['preset-minimal'].disabled === true && entries['preset-chat'].disabled === false, '条目重载后补同步 Chat 开关')
 }
 
 // Chat 的两个零注入模块仍按契约工作
@@ -194,7 +271,8 @@ for (const [key, apply, batchName] of [
 	const translated = await assemble({}, {}, async () => BASE_ASSEMBLY)
 	const identity = translated.sections.find(section => section.name === 'harness:identity')
 	const persona = translated.sections.find(section => section.name === 'deployment:persona-prefix')
-	ok(identity?.text.includes('执行政策') && identity?.interpolate === false, key + ' 打开时写入中文身份段')
+	ok(identity?.text.includes('你是由 DeepSeek Harness 驱动的 AI Agent') && identity?.interpolate === false, key + ' 打开时写入中文身份段')
+	ok(identity?.text.includes('回答的表达风格'), key + ' 身份段带表达风格')
 	ok(persona?.text === '', key + ' 打开时清空原生 persona')
 	if (batchName === undefined) {
 		ok(!translated.sections.some(section => section.name === batchName), key + ' 不追加多余的批处理段')
@@ -256,9 +334,11 @@ setPresetState(PRESET_DEFAULTS)
 	equal(result.sections, [{ name: 'deployment:persona-prefix', text: PROMPT_TEXT, interpolate: false }], '引玉系统提示词严格只有一句')
 	const tooling = result.contexts[0]
 	equal(tooling?.name, TOOLING_CONTEXT, '引玉 tooling context 在第一位')
-	ok(tooling.text.includes('Execution policy:'), '引玉 tooling 段含执行政策')
+	ok(tooling.text.includes('Reversible work that falls within the current request'), '引玉 tooling 段含执行政策')
 	ok(tooling.text.includes('PTC only'), '引玉 tooling 段含 PTC-only 规则')
 	ok(tooling.text.includes('SDK declarations'), '引玉 tooling 段含 SDK 声明')
+	ok(tooling.text.includes('multi-step workflow'), '引玉 tooling 段含 run_code 用法引导')
+	ok(tooling.text.includes('concrete nouns'), '引玉 tooling 段含表达风格')
 	ok(tooling.interpolate === false, '引玉 tooling 段钉 interpolate: false')
 	equal(result.contexts.map(context => context.name), [TOOLING_CONTEXT, 'other'], '引玉保留其它 runtime context')
 }
