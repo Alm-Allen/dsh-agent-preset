@@ -1,7 +1,7 @@
 /**
  * 五个预设开关的进程内镜像。
  *
- * 主插件 preset-pack 从宿主配置里读开关并写入这里；三个汉化层在每次组装时读它。
+ * 主插件 agent-preset 从宿主配置里读开关并写入这里；三个汉化层在每次组装时读它。
  * 默认值与 host Config、客户端表单三处必须一致。
  */
 export const PRESET_KEYS = ['yayan', 'cangjie', 'maliang', 'chat', 'yinyu']

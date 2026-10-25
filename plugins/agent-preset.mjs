@@ -2,7 +2,7 @@ import z from '@deepseek-ai/schemastery'
 import { PRESET_DEFAULTS, PRESET_KEYS, setPresetState } from './preset-state.mjs'
 
 /** Cordis 插件名；同时是 profile 里的条目 id 与设置表单命名空间。 */
-export const name = 'preset-pack'
+export const name = 'agent-preset'
 
 /** 需要 Loader 来启停新增的 preset-yinyu 条目。 */
 export const inject = ['loader']
@@ -69,7 +69,7 @@ async function syncChat(ctx, enabled) {
 	const minimal = await resolveEntry(ctx, MINIMAL_ENTRY)
 	const chat = await resolveEntry(ctx, CHAT_ENTRY)
 	if (minimal === undefined || chat === undefined) {
-		ctx.logger?.warn?.('preset-pack: preset-minimal or preset-chat entry was not found; chat switch left pending')
+		ctx.logger?.warn?.('agent-preset: preset-minimal or preset-chat entry was not found; chat switch left pending')
 		return
 	}
 	if (enabled) {
@@ -83,12 +83,12 @@ async function syncChat(ctx, enabled) {
 
 /**
  * 把引玉条目切换到期望的启用状态。直接更新 Loader 条目而不写 profile：
- * 持久化的是 preset-pack 的配置，启动时再由这里重新落到条目上。
+ * 持久化的是 agent-preset 的配置，启动时再由这里重新落到条目上。
  */
 async function syncYinyu(ctx, enabled) {
 	const entry = await resolveEntry(ctx, YINYU_ENTRY)
 	if (entry === undefined) {
-		ctx.logger?.warn?.('preset-pack: preset-yinyu entry was not found; yinyu switch left pending')
+		ctx.logger?.warn?.('agent-preset: preset-yinyu entry was not found; yinyu switch left pending')
 		return
 	}
 	const disabled = !enabled
@@ -118,7 +118,7 @@ export function apply(ctx, config) {
 				await syncChat(ctx, flags.chat)
 				if (active) await syncYinyu(ctx, flags.yinyu)
 			})
-			.catch(error => ctx.logger?.warn?.('preset-pack: failed to synchronize preset switch', error))
+			.catch(error => ctx.logger?.warn?.('agent-preset: failed to synchronize preset switch', error))
 	}
 
 	ctx.on('loader/volatile-update', sync)
@@ -127,7 +127,7 @@ export function apply(ctx, config) {
 		return () => {
 			active = false
 		}
-	}, 'preset-pack: publish switches')
+	}, 'agent-preset: publish switches')
 }
 
 export { PRESET_DEFAULTS, PRESET_KEYS }

@@ -4,7 +4,7 @@
 
 ### Added
 
-- 五个预设合并为单一插件 `@alm-allen/dsh-preset-pack`，一次安装、一个插件页。
+- 五个预设合并为单一插件 `@alm-allen/dsh-agent-preset`，一次安装、一个插件页。
 - 插件管理页新增五个即时开关：
   - 雅言（标准模式汉化）
   - 仓颉（PTC 模式汉化）
@@ -17,5 +17,7 @@
 
 ### Changed
 
+- 插件包、GitHub 仓库和目录统一命名为 `dsh-agent-preset`，包名为 `@alm-allen/dsh-agent-preset`。
+- 插件管理页中文显示名改为「智能体预设」，英文显示名为「Agent Presets」。
 - 五个仓库的源码、翻译层、自测与发布说明合并到一个仓库。
 - 原有执行政策、提示词约束、工具翻译表与零工具契约保持不变。

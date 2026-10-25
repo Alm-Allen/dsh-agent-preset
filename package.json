@@ -1,12 +1,12 @@
 {
-  "name": "@alm-allen/dsh-preset-pack",
+  "name": "@alm-allen/dsh-agent-preset",
   "version": "2026.10.25",
-  "description": "五个 DSH Agent 预设合并成一个 bundle：雅言、仓颉、马良把三个原生预设汉化，Chat 把原生极简模式换成纯对话，引玉保留独立极简 PTC 预设；插件管理页分别启停，原生预设替代默认关闭、引玉默认开启。",
+  "description": "智能体预设：把雅言、仓颉、马良、Chat、引玉五个 DSH Agent 预设合并成一个插件；插件管理页分别启停，原生预设替代默认关闭、引玉默认开启。",
   "type": "module",
   "license": "MIT",
-  "main": "./plugins/preset-pack.mjs",
+  "main": "./plugins/agent-preset.mjs",
   "exports": {
-    ".": "./plugins/preset-pack.mjs",
+    ".": "./plugins/agent-preset.mjs",
     "./yayan-zh": "./plugins/yayan-zh.mjs",
     "./cangjie-zh": "./plugins/cangjie-zh.mjs",
     "./maliang-zh": "./plugins/maliang-zh.mjs",
@@ -42,7 +42,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Alm-Allen/dsh-preset-pack.git"
+    "url": "git+https://github.com/Alm-Allen/dsh-agent-preset.git"
   },
   "keywords": [
     "deepseek-harness",

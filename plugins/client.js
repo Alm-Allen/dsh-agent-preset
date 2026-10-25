@@ -1,12 +1,12 @@
-/* @alm-allen/dsh-preset-pack — 插件管理页配置卡。手写单文件客户端 bundle，无构建步骤。 */
+/* @alm-allen/dsh-agent-preset — 插件管理页配置卡。手写单文件客户端 bundle，无构建步骤。 */
 window.__ModuleLoader__.load({
-  id: "@alm-allen/dsh-preset-pack",
+  id: "@alm-allen/dsh-agent-preset",
   factory: (require) => {
     const React = require("react")
     const primitives = require("@deepseek-ai/dsh-client-ui-primitives")
 
-    const PACKAGE_NAME = "@alm-allen/dsh-preset-pack"
-    const SETTINGS_NAMESPACE = "preset-pack"
+    const PACKAGE_NAME = "@alm-allen/dsh-agent-preset"
+    const SETTINGS_NAMESPACE = "agent-preset"
     const FIELDS = [
       { key: "yayan", zh: ["雅言 · 标准模式", "把标准模式的系统提示词与工具说明切换为中文。关闭时保持原生英文标准模式。"], en: ["Yayan · Standard", "Switch Standard to Chinese prompts and tool descriptions. Off keeps the shipped English preset unchanged."], fallback: false, group: "native" },
       { key: "cangjie", zh: ["仓颉 · PTC 模式", "把 PTC 模式的系统提示词与 run_code 说明切换为中文。关闭时保持原生英文 PTC 模式。"], en: ["Cangjie · PTC", "Switch PTC to Chinese prompts and run_code documentation. Off keeps the shipped English preset unchanged."], fallback: false, group: "native" },
@@ -49,22 +49,22 @@ window.__ModuleLoader__.load({
     }
 
     const CSS = `
-.dsh-preset-pack-form { display:flex; flex-direction:column; gap:18px; }
-.dsh-preset-pack-group { display:flex; flex-direction:column; gap:4px; }
-.dsh-preset-pack-heading { margin:0; color:var(--dsw-alias-label-primary); font-size:14px; font-weight:600; line-height:22px; }
-.dsh-preset-pack-intro { margin:0 0 8px; color:var(--dsw-alias-label-tertiary); font-size:12px; line-height:18px; }
-.dsh-preset-pack-row { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:12px 0; border-top:.5px solid var(--dsw-alias-border-l2); }
-.dsh-preset-pack-row-text { min-width:0; }
-.dsh-preset-pack-label-line { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.dsh-preset-pack-label { color:var(--dsw-alias-label-primary); font-size:13px; font-weight:500; line-height:20px; }
-.dsh-preset-pack-default { color:var(--dsw-alias-label-tertiary); font-size:11px; line-height:18px; }
-.dsh-preset-pack-hint { margin:2px 0 0; color:var(--dsw-alias-label-tertiary); font-size:12px; line-height:18px; }
-.dsh-preset-pack-badges { display:inline-flex; align-items:center; gap:6px; }
-.dsh-preset-pack-badge { color:var(--dsw-alias-state-business-primary); font-size:11px; line-height:18px; }
-.dsh-preset-pack-reset { border:0; background:none; color:var(--dsw-alias-label-tertiary); font:inherit; font-size:11px; cursor:pointer; padding:0; }
-.dsh-preset-pack-reset:hover { color:var(--dsw-alias-label-primary); }
-.dsh-preset-pack-status { margin:0; color:var(--dsw-alias-state-error-primary,var(--dsw-alias-label-tertiary)); font-size:12px; line-height:18px; }
-.dsh-preset-pack-notice { margin:0; color:var(--dsw-alias-label-tertiary); font-size:12px; line-height:18px; }
+.dsh-agent-preset-form { display:flex; flex-direction:column; gap:18px; }
+.dsh-agent-preset-group { display:flex; flex-direction:column; gap:4px; }
+.dsh-agent-preset-heading { margin:0; color:var(--dsw-alias-label-primary); font-size:14px; font-weight:600; line-height:22px; }
+.dsh-agent-preset-intro { margin:0 0 8px; color:var(--dsw-alias-label-tertiary); font-size:12px; line-height:18px; }
+.dsh-agent-preset-row { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:12px 0; border-top:.5px solid var(--dsw-alias-border-l2); }
+.dsh-agent-preset-row-text { min-width:0; }
+.dsh-agent-preset-label-line { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.dsh-agent-preset-label { color:var(--dsw-alias-label-primary); font-size:13px; font-weight:500; line-height:20px; }
+.dsh-agent-preset-default { color:var(--dsw-alias-label-tertiary); font-size:11px; line-height:18px; }
+.dsh-agent-preset-hint { margin:2px 0 0; color:var(--dsw-alias-label-tertiary); font-size:12px; line-height:18px; }
+.dsh-agent-preset-badges { display:inline-flex; align-items:center; gap:6px; }
+.dsh-agent-preset-badge { color:var(--dsw-alias-state-business-primary); font-size:11px; line-height:18px; }
+.dsh-agent-preset-reset { border:0; background:none; color:var(--dsw-alias-label-tertiary); font:inherit; font-size:11px; cursor:pointer; padding:0; }
+.dsh-agent-preset-reset:hover { color:var(--dsw-alias-label-primary); }
+.dsh-agent-preset-status { margin:0; color:var(--dsw-alias-state-error-primary,var(--dsw-alias-label-tertiary)); font-size:12px; line-height:18px; }
+.dsh-agent-preset-notice { margin:0; color:var(--dsw-alias-label-tertiary); font-size:12px; line-height:18px; }
 `
 
     function activeLanguage(locale) {
@@ -137,17 +137,17 @@ window.__ModuleLoader__.load({
 
       function row(field) {
         const text = language.toLowerCase().split("-")[0] === "en" ? field.en : field.zh
-        return React.createElement("div", { className: "dsh-preset-pack-row", key: field.key },
-          React.createElement("div", { className: "dsh-preset-pack-row-text" },
-            React.createElement("div", { className: "dsh-preset-pack-label-line" },
-              React.createElement("span", { className: "dsh-preset-pack-label" }, text[0]),
-              React.createElement("span", { className: "dsh-preset-pack-default" }, field.fallback ? copy.onByDefault : copy.offByDefault),
-              overridden(snapshot, field) && React.createElement("span", { className: "dsh-preset-pack-badges" },
-                React.createElement("span", { className: "dsh-preset-pack-badge" }, copy.overridden),
-                React.createElement("button", { type: "button", className: "dsh-preset-pack-reset", disabled: controlsDisabled, onClick: () => void resetField(field) }, copy.reset)
+        return React.createElement("div", { className: "dsh-agent-preset-row", key: field.key },
+          React.createElement("div", { className: "dsh-agent-preset-row-text" },
+            React.createElement("div", { className: "dsh-agent-preset-label-line" },
+              React.createElement("span", { className: "dsh-agent-preset-label" }, text[0]),
+              React.createElement("span", { className: "dsh-agent-preset-default" }, field.fallback ? copy.onByDefault : copy.offByDefault),
+              overridden(snapshot, field) && React.createElement("span", { className: "dsh-agent-preset-badges" },
+                React.createElement("span", { className: "dsh-agent-preset-badge" }, copy.overridden),
+                React.createElement("button", { type: "button", className: "dsh-agent-preset-reset", disabled: controlsDisabled, onClick: () => void resetField(field) }, copy.reset)
               )
             ),
-            React.createElement("p", { className: "dsh-preset-pack-hint" }, text[1])
+            React.createElement("p", { className: "dsh-agent-preset-hint" }, text[1])
           ),
           React.createElement(primitives.Switch, {
             checked: stored(snapshot, field),
@@ -158,35 +158,35 @@ window.__ModuleLoader__.load({
         )
       }
 
-      if (unavailable) return React.createElement("p", { className: "dsh-preset-pack-notice", role: "status" }, copy.unavailable)
+      if (unavailable) return React.createElement("p", { className: "dsh-agent-preset-notice", role: "status" }, copy.unavailable)
 
       const nativeFields = FIELDS.filter(field => field.group === "native")
       const standaloneFields = FIELDS.filter(field => field.group === "standalone")
-      return React.createElement("div", { className: "dsh-preset-pack-form", "data-plugin-config-form": SETTINGS_NAMESPACE },
-        readOnly && React.createElement("p", { className: "dsh-preset-pack-notice", role: "status" }, copy.readOnly),
-        React.createElement("section", { className: "dsh-preset-pack-group" },
-          React.createElement("h3", { className: "dsh-preset-pack-heading" }, copy.nativeTitle),
-          React.createElement("p", { className: "dsh-preset-pack-intro" }, copy.nativeHint),
+      return React.createElement("div", { className: "dsh-agent-preset-form", "data-plugin-config-form": SETTINGS_NAMESPACE },
+        readOnly && React.createElement("p", { className: "dsh-agent-preset-notice", role: "status" }, copy.readOnly),
+        React.createElement("section", { className: "dsh-agent-preset-group" },
+          React.createElement("h3", { className: "dsh-agent-preset-heading" }, copy.nativeTitle),
+          React.createElement("p", { className: "dsh-agent-preset-intro" }, copy.nativeHint),
           nativeFields.map(row)
         ),
-        React.createElement("section", { className: "dsh-preset-pack-group" },
-          React.createElement("h3", { className: "dsh-preset-pack-heading" }, copy.standaloneTitle),
-          React.createElement("p", { className: "dsh-preset-pack-intro" }, copy.standaloneHint),
+        React.createElement("section", { className: "dsh-agent-preset-group" },
+          React.createElement("h3", { className: "dsh-agent-preset-heading" }, copy.standaloneTitle),
+          React.createElement("p", { className: "dsh-agent-preset-intro" }, copy.standaloneHint),
           standaloneFields.map(row)
         ),
-        failed && React.createElement("p", { className: "dsh-preset-pack-status", role: "status" }, copy.failed),
-        saving !== null && React.createElement("p", { className: "dsh-preset-pack-notice", role: "status" }, copy.saving)
+        failed && React.createElement("p", { className: "dsh-agent-preset-status", role: "status" }, copy.failed),
+        saving !== null && React.createElement("p", { className: "dsh-agent-preset-notice", role: "status" }, copy.saving)
       )
     }
 
     function apply(ctx) {
       ctx.effect(() => {
         const style = document.createElement("style")
-        style.dataset.plugin = "dsh-preset-pack"
+        style.dataset.plugin = "dsh-agent-preset"
         style.textContent = CSS
         document.head.appendChild(style)
         return () => style.remove()
-      }, "preset-pack: config card styles")
+      }, "agent-preset: config card styles")
 
       const scope = ctx.configForms.get(SETTINGS_NAMESPACE)
       ctx.slots.inject("plugins.bundle.config", () => ctx.slots.register({

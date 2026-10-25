@@ -1,6 +1,6 @@
-# @alm-allen/dsh-preset-pack：五个预设共用一个 bundle。
-# 顶层 preset-pack 行提供插件管理页上的五个开关。三个汉化预设 override 始终存在，
-# 但汉化层由 preset-pack 的配置决定是否生效；Chat 与原生 minimal 共用 config.id，
+# @alm-allen/dsh-agent-preset：五个预设共用一个 bundle。
+# 顶层 agent-preset 行提供插件管理页上的五个开关。三个汉化预设 override 始终存在，
+# 但汉化层由 agent-preset 的配置决定是否生效；Chat 与原生 minimal 共用 config.id，
 # 由主插件交换两条 Loader 条目；引玉关闭时停用 preset-yinyu。
 # 默认：四个原生预设替代关闭，引玉开启。
 #
@@ -8,8 +8,8 @@
 # 只在 persona 后插入各自的中文化层。升级 dsh 后要重新对照 shipped 文件。
 
 - insert:
-    - id: preset-pack
-      name: '@alm-allen/dsh-preset-pack'
+    - id: agent-preset
+      name: '@alm-allen/dsh-agent-preset'
       config: {}
 
 - id: preset-standard
@@ -23,7 +23,7 @@
         config:
           prefix: You are a coding agent powered by the {{model}} model.
       - id: yayan-zh
-        name: '@alm-allen/dsh-preset-pack/yayan-zh'
+        name: '@alm-allen/dsh-agent-preset/yayan-zh'
       - id: agent-instructions
         name: '@deepseek-ai/dsh-agent-instructions'
         config:
@@ -150,7 +150,7 @@
         config:
           prefix: You are a coding agent powered by the {{model}} model.
       - id: cangjie-zh
-        name: '@alm-allen/dsh-preset-pack/cangjie-zh'
+        name: '@alm-allen/dsh-agent-preset/cangjie-zh'
       - id: agent-instructions
         name: '@deepseek-ai/dsh-agent-instructions'
         config:
@@ -286,7 +286,7 @@
           prefix: >-
             You are a coding agent powered by the {{model}} model.
       - id: maliang-zh
-        name: '@alm-allen/dsh-preset-pack/maliang-zh'
+        name: '@alm-allen/dsh-agent-preset/maliang-zh'
       - id: agent-instructions
         name: '@deepseek-ai/dsh-agent-instructions'
         config:
@@ -423,7 +423,7 @@
           # 唯一的自建行：每次组装把系统提示词收敛成上面那一句，并把共用执行政策与 PTC 工具说明
           # 放进第一个 runtime context。必须按包名引用：预设里的行以 profile 目录为解析基准。
           - id: yinyu-stage
-            name: '@alm-allen/dsh-preset-pack/yinyu-stage'
+            name: '@alm-allen/dsh-agent-preset/yinyu-stage'
           - id: agent-instructions
             name: '@deepseek-ai/dsh-agent-instructions'
             config:
@@ -564,6 +564,6 @@
               complete: true
               includeRuntimeContext: false
           - id: no-global-tools
-            name: '@alm-allen/dsh-preset-pack/no-global-tools'
+            name: '@alm-allen/dsh-agent-preset/no-global-tools'
           - id: zero-injection
-            name: '@alm-allen/dsh-preset-pack/zero-injection'
+            name: '@alm-allen/dsh-agent-preset/zero-injection'
