@@ -1,7 +1,7 @@
 {
   "name": "@alm-allen/dsh-preset-pack",
   "version": "2026.10.25",
-  "description": "四个 DSH Agent 预设合并成一个 bundle：雅言、仓颉、马良把三个原生预设按开关切换为中文，引玉保留独立极简 PTC 预设；插件管理页直接启停，原生汉化默认关闭、引玉默认开启。",
+  "description": "五个 DSH Agent 预设合并成一个 bundle：雅言、仓颉、马良把三个原生预设汉化，Chat 把原生极简模式换成纯对话，引玉保留独立极简 PTC 预设；插件管理页分别启停，原生预设替代默认关闭、引玉默认开启。",
   "type": "module",
   "license": "MIT",
   "main": "./plugins/preset-pack.mjs",
@@ -11,6 +11,8 @@
     "./cangjie-zh": "./plugins/cangjie-zh.mjs",
     "./maliang-zh": "./plugins/maliang-zh.mjs",
     "./yinyu-stage": "./plugins/yinyu-stage.mjs",
+    "./no-global-tools": "./plugins/no-global-tools.mjs",
+    "./zero-injection": "./plugins/zero-injection.mjs",
     "./client": "./plugins/client.js",
     "./self-test": "./plugins/self-test.mjs",
     "./audit-coverage": "./plugins/audit-coverage.mjs",
@@ -50,6 +52,7 @@
     "yayan",
     "cangjie",
     "maliang",
+    "chat",
     "yinyu"
   ],
   "engines": {

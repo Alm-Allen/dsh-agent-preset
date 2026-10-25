@@ -9,17 +9,21 @@ export const inject = ['loader']
 
 /** 预设条目的 Loader id。 */
 const YINYU_ENTRY = 'preset-yinyu'
+const MINIMAL_ENTRY = 'preset-minimal'
+const CHAT_ENTRY = 'preset-chat'
 
 /**
- * 插件管理页上的四个开关。
+ * 插件管理页上的五个开关。
  *
- * 三个原生预设汉化默认关闭；引玉（非原生、新增）默认开启。字段必须保持 volatile：
- * Loader 才会在设置写入后原地更新运行中的引用并通知本插件，无需重载整个 bundle。
+ * 四个原生预设替代（雅言/仓颉/马良/chat）默认关闭；引玉（非原生、新增）默认开启。
+ * 字段必须保持 volatile：Loader 才会在设置写入后原地更新运行中的引用并通知本插件，
+ * 无需重载整个 bundle。
  */
 export const Config = z.object({
 	yayan: z.boolean().default(PRESET_DEFAULTS.yayan).volatile(),
 	cangjie: z.boolean().default(PRESET_DEFAULTS.cangjie).volatile(),
 	maliang: z.boolean().default(PRESET_DEFAULTS.maliang).volatile(),
+	chat: z.boolean().default(PRESET_DEFAULTS.chat).volatile(),
 	yinyu: z.boolean().default(PRESET_DEFAULTS.yinyu).volatile(),
 })
 
@@ -34,31 +38,65 @@ function snapshot(config) {
 	return Object.fromEntries(PRESET_KEYS.map(key => [key, readFlag(config, key)]))
 }
 
-/** 等一帧，给同一次组合里的 preset-yinyu 条目留出创建时间。 */
+/** 等一帧，给同一次组合里的预设行留出创建时间。 */
 const tick = () => new Promise(resolve => setTimeout(resolve, 20))
+
+/** 等一个条目真正停稳，避免同一个 config.id 在切换时短暂重复。 */
+async function settle(entry) {
+	const fiber = entry.fiber
+	await entry.update({ disabled: true })
+	await fiber?.dispose?.()
+	await tick()
+}
+
+/** 找一条预设行；同一次组合里可能稍晚才创建，因此短暂重试。 */
+async function resolveEntry(ctx, id) {
+	for (let attempt = 0; attempt < 100; attempt += 1) {
+		try {
+			return ctx.loader.resolve(id)
+		} catch {
+			await tick()
+		}
+	}
+	return undefined
+}
+
+/**
+ * Chat 用“换人”而不是覆盖：原生 minimal 与 preset-chat 使用同一个 config.id，
+ * 同一时刻只能有一个注册。开启时先停原生再启用 Chat，关闭时反过来。
+ */
+async function syncChat(ctx, enabled) {
+	const minimal = await resolveEntry(ctx, MINIMAL_ENTRY)
+	const chat = await resolveEntry(ctx, CHAT_ENTRY)
+	if (minimal === undefined || chat === undefined) {
+		ctx.logger?.warn?.('preset-pack: preset-minimal or preset-chat entry was not found; chat switch left pending')
+		return
+	}
+	if (enabled) {
+		if (!minimal.disabled) await settle(minimal)
+		if (chat.disabled) await chat.update({ disabled: false })
+	} else {
+		if (!chat.disabled) await settle(chat)
+		if (minimal.disabled) await minimal.update({ disabled: false })
+	}
+}
 
 /**
  * 把引玉条目切换到期望的启用状态。直接更新 Loader 条目而不写 profile：
  * 持久化的是 preset-pack 的配置，启动时再由这里重新落到条目上。
  */
 async function syncYinyu(ctx, enabled) {
-	for (let attempt = 0; attempt < 100; attempt += 1) {
-		let entry
-		try {
-			entry = ctx.loader.resolve(YINYU_ENTRY)
-		} catch {
-			await tick()
-			continue
-		}
-		const disabled = !enabled
-		if (entry.disabled !== disabled) await entry.update({ disabled })
+	const entry = await resolveEntry(ctx, YINYU_ENTRY)
+	if (entry === undefined) {
+		ctx.logger?.warn?.('preset-pack: preset-yinyu entry was not found; yinyu switch left pending')
 		return
 	}
-	ctx.logger?.warn?.('preset-pack: preset-yinyu entry was not found; yinyu switch left pending')
+	const disabled = !enabled
+	if (entry.disabled !== disabled) await entry.update({ disabled })
 }
 
 /**
- * 主插件：同步四个开关。三个汉化层从 preset-state 读取；引玉条目在这里启停。
+ * 主插件：同步五个开关。汉化层从 preset-state 读取；Chat 与引玉条目在这里启停。
  * @param ctx - 当前 bundle 行的 Context。
  * @param config - 带 volatile 引用的配置。
  */
@@ -75,8 +113,12 @@ export function apply(ctx, config) {
 	const sync = () => {
 		const flags = publish()
 		queue = queue
-			.then(() => active ? syncYinyu(ctx, flags.yinyu) : undefined)
-			.catch(error => ctx.logger?.warn?.('preset-pack: failed to synchronize preset-yinyu', error))
+			.then(async () => {
+				if (!active) return
+				await syncChat(ctx, flags.chat)
+				if (active) await syncYinyu(ctx, flags.yinyu)
+			})
+			.catch(error => ctx.logger?.warn?.('preset-pack: failed to synchronize preset switch', error))
 	}
 
 	ctx.on('loader/volatile-update', sync)

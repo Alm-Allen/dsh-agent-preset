@@ -11,14 +11,15 @@ window.__ModuleLoader__.load({
       { key: "yayan", zh: ["雅言 · 标准模式", "把标准模式的系统提示词与工具说明切换为中文。关闭时保持原生英文标准模式。"], en: ["Yayan · Standard", "Switch Standard to Chinese prompts and tool descriptions. Off keeps the shipped English preset unchanged."], fallback: false, group: "native" },
       { key: "cangjie", zh: ["仓颉 · PTC 模式", "把 PTC 模式的系统提示词与 run_code 说明切换为中文。关闭时保持原生英文 PTC 模式。"], en: ["Cangjie · PTC", "Switch PTC to Chinese prompts and run_code documentation. Off keeps the shipped English preset unchanged."], fallback: false, group: "native" },
       { key: "maliang", zh: ["马良 · 创造模式", "把创造模式的系统提示词、工具与技能目录说明切换为中文。关闭时保持原生英文创造模式。"], en: ["Maliang · Creator", "Switch Creator prompts, tools and skill catalog text to Chinese. Off keeps the shipped English preset unchanged."], fallback: false, group: "native" },
+      { key: "chat", zh: ["Chat · 极简模式", "把极简模式换成零工具、零系统提示词的纯对话组合。关闭时保持原生英文极简模式。"], en: ["Chat · Minimal", "Replace Minimal with a zero-tool, zero-system-prompt conversation preset. Off keeps the shipped Minimal preset unchanged."], fallback: false, group: "native" },
       { key: "yinyu", zh: ["引玉 · 独立预设", "保留极简系统提示词与 PTC run_code 环境的新增预设。关闭后该预设从可选列表中移除。"], en: ["Yinyu · standalone preset", "The extra preset with a minimal system prompt and the PTC run_code environment. Off removes it from the preset roster."], fallback: true, group: "standalone" },
     ]
 
     const COPY = {
       zh: {
-        summary: "三个原生预设汉化默认关闭，引玉默认开启。",
-        nativeTitle: "原生预设替代汉化",
-        nativeHint: "关闭时对应预设与原生版本完全一致；打开后立即改为中文提示词与工具说明，不需要重装插件。",
+        summary: "四个原生预设替代默认关闭，引玉默认开启。",
+        nativeTitle: "原生预设替代（汉化 / 纯对话）",
+        nativeHint: "四个替代项默认关闭。关闭时对应预设与原生版本完全一致；打开汉化项会立即改为中文，打开 Chat 会切换为零工具、零系统提示词的纯对话组合，都不需要重装插件。",
         standaloneTitle: "非原生预设",
         standaloneHint: "引玉是新增条目，没有原生版本可回退；关闭后从 Agent 预设列表中移除。",
         offByDefault: "默认关闭",
@@ -31,9 +32,9 @@ window.__ModuleLoader__.load({
         readOnly: "当前设置不可修改。",
       },
       en: {
-        summary: "The three native-preset localizations default off; Yinyu defaults on.",
-        nativeTitle: "Native preset localization",
-        nativeHint: "Off keeps each preset identical to the shipped version. On switches its prompts and tool descriptions to Chinese immediately, with no reinstall.",
+        summary: "The four native-preset replacements default off; Yinyu defaults on.",
+        nativeTitle: "Native preset replacements",
+        nativeHint: "All four replacements default off. Off keeps each preset identical to the shipped version; on switches localization presets to Chinese or Chat to a zero-tool, zero-system-prompt conversation, with no reinstall.",
         standaloneTitle: "Standalone preset",
         standaloneHint: "Yinyu has no native counterpart. Turning it off removes it from the Agent preset roster.",
         offByDefault: "Default off",

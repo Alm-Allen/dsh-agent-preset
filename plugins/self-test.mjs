@@ -7,6 +7,8 @@ import { apply as applyYayan } from './yayan-zh.mjs'
 import { apply as applyCangjie } from './cangjie-zh.mjs'
 import { apply as applyMaliang } from './maliang-zh.mjs'
 import { apply as applyYinyu, PROMPT_TEXT, TOOLING_CONTEXT } from './yinyu-stage.mjs'
+import { apply as applyNoGlobalTools } from './no-global-tools.mjs'
+import { apply as applyZeroInjection } from './zero-injection.mjs'
 
 const ROOT = new URL('../', import.meta.url)
 const read = path => fs.readFile(new URL(path, ROOT), 'utf8')
@@ -22,7 +24,7 @@ const equal = (actual, expected, message) => {
 	console.log('✓ ' + message)
 }
 
-/** 收集一个预设块，避免四个组合里的同名行互相掩盖。 */
+/** 收集一个预设块，避免多个组合里的同名行互相掩盖。 */
 function block(text, start, end) {
 	const from = text.indexOf(start)
 	assert.notEqual(from, -1, 'missing block start ' + start)
@@ -69,7 +71,8 @@ ok((controller.match(/- id: preset-pack/g) ?? []).length === 1, '只有一个 pr
 const standard = block(patch, '- id: preset-standard', '- id: preset-ptc')
 const ptc = block(patch, '- id: preset-ptc', '- id: preset-cordis')
 const cordis = block(patch, '- id: preset-cordis', '- id: preset-yinyu')
-const yinyu = block(patch, '- id: preset-yinyu')
+const yinyu = block(patch, '- id: preset-yinyu', '- id: preset-chat')
+const chat = block(patch, '- id: preset-chat')
 ok(standard.includes('prefix: You are a coding agent powered by the {{model}} model.'), '雅言保留原生 persona')
 ok(standard.includes('@alm-allen/dsh-preset-pack/yayan-zh'), '雅言挂载包内汉化层')
 ok(!standard.includes('prefix: ""'), '雅言不再把 persona 静态置空')
@@ -77,11 +80,14 @@ ok(ptc.includes('@alm-allen/dsh-preset-pack/cangjie-zh'), '仓颉挂载包内汉
 ok(cordis.includes('@alm-allen/dsh-preset-pack/maliang-zh'), '马良挂载包内汉化层')
 ok(yinyu.includes("name: '@alm-allen/dsh-preset-pack/yinyu-stage'"), '引玉挂载包内 stage')
 ok(yinyu.includes('id: preset-yinyu'), '引玉仍是新增 preset 条目')
+ok(chat.includes('disabled: true') && chat.includes('id: preset-chat'), 'Chat 预设条目默认停用')
+ok(chat.includes('id: minimal') && chat.includes("name: 'Chat 模式'"), 'Chat 与原生 minimal 共用 config.id')
+ok(chat.includes('@alm-allen/dsh-preset-pack/no-global-tools') && chat.includes('@alm-allen/dsh-preset-pack/zero-injection'), 'Chat 挂载零工具与零注入兜底')
 
 // ── 默认值 ──────────────────────────────────────────────────────────────────
-equal(PRESET_DEFAULTS, { yayan: false, cangjie: false, maliang: false, yinyu: true }, '进程内默认值符合要求')
+equal(PRESET_DEFAULTS, { yayan: false, cangjie: false, maliang: false, chat: false, yinyu: true }, '进程内默认值符合要求')
 equal(getPresetState(), PRESET_DEFAULTS, '进程内镜像初始值正确')
-for (const key of ['yayan', 'cangjie', 'maliang']) {
+for (const key of ['yayan', 'cangjie', 'maliang', 'chat']) {
 	equal(Config.dict[key].meta.default, false, key + ' Host 默认关闭')
 	equal(Config.dict[key].meta.volatile, true, key + ' 是 volatile 字段')
 }
@@ -89,33 +95,76 @@ equal(Config.dict.yinyu.meta.default, true, '引玉 Host 默认开启')
 equal(Config.dict.yinyu.meta.volatile, true, '引玉是 volatile 字段')
 const client = await read('plugins/client.js')
 const fallbacks = [...client.matchAll(/fallback: (true|false)/g)].map(match => match[1])
-equal(fallbacks.sort(), ['false', 'false', 'false', 'true'], '客户端四个默认值与 Host 一致')
+equal(fallbacks.sort(), ['false', 'false', 'false', 'false', 'true'], '客户端五个默认值与 Host 一致')
 
-// ── 主插件：开关镜像与引玉条目启停 ─────────────────────────────────────────
+// ── 主插件：开关镜像、Chat 预设交换与引玉条目启停 ─────────────────────────
 {
 	const updates = []
-	const entry = {
-		disabled: false,
+	const makeEntry = (id, disabled) => ({
+		id,
+		disabled,
 		async update(options) {
-			updates.push({ ...options })
+			updates.push({ id, disabled: options.disabled })
 			this.disabled = options.disabled === true
 		},
+	})
+	const entries = {
+		'preset-minimal': makeEntry('preset-minimal', false),
+		'preset-chat': makeEntry('preset-chat', true),
+		'preset-yinyu': makeEntry('preset-yinyu', false),
 	}
 	let volatileHandler
 	const ctx = {
-		loader: { resolve(id) { assert.equal(id, 'preset-yinyu'); return entry } },
+		loader: { resolve(id) { const entry = entries[id]; if (entry === undefined) throw new Error('missing ' + id); return entry } },
 		on(name, handler) { if (name === 'loader/volatile-update') volatileHandler = handler },
 		effect(effect) { const dispose = effect(); return typeof dispose === 'function' ? dispose : () => {} },
 		logger: { warn() {} },
 	}
-	const config = { yayan: false, cangjie: false, maliang: false, yinyu: false }
+	const config = { yayan: false, cangjie: false, maliang: false, chat: true, yinyu: false }
 	applyPack(ctx, config)
-	await new Promise(resolve => setTimeout(resolve, 50))
-	ok(updates.some(update => update.disabled === true) && entry.disabled === true, '引玉关闭时停用 Loader 条目')
+	await new Promise(resolve => setTimeout(resolve, 140))
+	const firstMinimalOff = updates.findIndex(update => update.id === 'preset-minimal' && update.disabled === true)
+	const firstChatOn = updates.findIndex(update => update.id === 'preset-chat' && update.disabled === false)
+	ok(firstMinimalOff >= 0 && firstChatOn > firstMinimalOff, '开启 Chat 时先停原生 minimal，再启用 Chat')
+	ok(entries['preset-yinyu'].disabled === true, '引玉关闭时停用 Loader 条目')
+
+	config.chat = false
 	config.yinyu = true
 	volatileHandler()
-	await new Promise(resolve => setTimeout(resolve, 50))
-	ok(updates.some(update => update.disabled === false) && entry.disabled === false, '引玉重新打开时启用 Loader 条目')
+	await new Promise(resolve => setTimeout(resolve, 180))
+	const lastChatOff = updates.map(update => update.id + ':' + String(update.disabled)).lastIndexOf('preset-chat:true')
+	const lastMinimalOn = updates.map(update => update.id + ':' + String(update.disabled)).lastIndexOf('preset-minimal:false')
+	ok(lastChatOff >= 0 && lastMinimalOn > lastChatOff, '关闭 Chat 时先停 Chat，再恢复原生 minimal')
+	ok(entries['preset-yinyu'].disabled === false, '引玉重新打开时启用 Loader 条目')
+	const chatSource = await read('plugins/no-global-tools.mjs')
+	const zeroSource = await read('plugins/zero-injection.mjs')
+	ok(chatSource.includes('ctx.tools.restrict({ allow: [] })'), 'Chat 的 no-global-tools 仍清空继承工具')
+	ok(zeroSource.includes('tools: []') && zeroSource.includes('contexts: []'), 'Chat 的 zero-injection 仍清空组装面')
+}
+
+// ── Chat 的两个零注入模块仍按契约工作 ──────────────────────────────────────
+{
+	let restriction
+	applyNoGlobalTools({
+		effect(effect) { effect() },
+		tools: { restrict(value) { restriction = value; return () => {} } },
+	})
+	equal(restriction, { allow: [] }, 'Chat no-global-tools 仍声明空 allow')
+
+	let assemble
+	applyZeroInjection({
+		on(name, handler) { if (name === 'system-prompt/assemble') assemble = handler },
+	})
+	const withRuntime = {
+		sections: [{ name: 'keep', text: 'x' }],
+		contexts: [{ name: 'required', text: 'must go' }],
+		tools: [{ name: 'leak' }],
+		variables: {},
+	}
+	const stripped = await assemble({}, {}, async () => withRuntime)
+	equal(stripped.tools, [], 'Chat zero-injection 清空 tools')
+	equal(stripped.contexts, [], 'Chat zero-injection 清空 contexts')
+	equal(stripped.sections, withRuntime.sections, 'Chat zero-injection 保留 sections 处理权')
 }
 
 // ── 三个汉化层的关闭直通 / 开启替换 ───────────────────────────────────────
@@ -124,7 +173,7 @@ for (const [key, apply, batchName] of [
 	['cangjie', applyCangjie, 'cangjie:batch-calls'],
 	['maliang', applyMaliang, undefined],
 ]) {
-	setPresetState({ yayan: false, cangjie: false, maliang: false, yinyu: true })
+	setPresetState({ yayan: false, cangjie: false, maliang: false, chat: false, yinyu: true })
 	const { ctx, handlers } = harness()
 	apply(ctx)
 	const assemble = handlers.get('system-prompt/assemble')
@@ -137,7 +186,7 @@ for (const [key, apply, batchName] of [
 	const stepResult = await preStep({}, async () => untouchedStep)
 	ok(stepResult === untouchedStep, key + ' 关闭时 pre-step 原样直通')
 
-	setPresetState({ yayan: false, cangjie: false, maliang: false, yinyu: true, [key]: true })
+	setPresetState({ yayan: false, cangjie: false, maliang: false, chat: false, yinyu: true, [key]: true })
 	const translated = await assemble({}, {}, async () => BASE_ASSEMBLY)
 	const identity = translated.sections.find(section => section.name === 'harness:identity')
 	const persona = translated.sections.find(section => section.name === 'deployment:persona-prefix')
