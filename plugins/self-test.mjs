@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs/promises'
 import vm from 'node:vm'
-import { Config } from './preset-pack.mjs'
+import { Config, apply as applyPack } from './preset-pack.mjs'
 import { PRESET_DEFAULTS, getPresetState, setPresetState } from './preset-state.mjs'
 import { apply as applyYayan } from './yayan-zh.mjs'
 import { apply as applyCangjie } from './cangjie-zh.mjs'
@@ -90,6 +90,33 @@ equal(Config.dict.yinyu.meta.volatile, true, '引玉是 volatile 字段')
 const client = await read('plugins/client.js')
 const fallbacks = [...client.matchAll(/fallback: (true|false)/g)].map(match => match[1])
 equal(fallbacks.sort(), ['false', 'false', 'false', 'true'], '客户端四个默认值与 Host 一致')
+
+// ── 主插件：开关镜像与引玉条目启停 ─────────────────────────────────────────
+{
+	const updates = []
+	const entry = {
+		disabled: false,
+		async update(options) {
+			updates.push({ ...options })
+			this.disabled = options.disabled === true
+		},
+	}
+	let volatileHandler
+	const ctx = {
+		loader: { resolve(id) { assert.equal(id, 'preset-yinyu'); return entry } },
+		on(name, handler) { if (name === 'loader/volatile-update') volatileHandler = handler },
+		effect(effect) { const dispose = effect(); return typeof dispose === 'function' ? dispose : () => {} },
+		logger: { warn() {} },
+	}
+	const config = { yayan: false, cangjie: false, maliang: false, yinyu: false }
+	applyPack(ctx, config)
+	await new Promise(resolve => setTimeout(resolve, 50))
+	ok(updates.some(update => update.disabled === true) && entry.disabled === true, '引玉关闭时停用 Loader 条目')
+	config.yinyu = true
+	volatileHandler()
+	await new Promise(resolve => setTimeout(resolve, 50))
+	ok(updates.some(update => update.disabled === false) && entry.disabled === false, '引玉重新打开时启用 Loader 条目')
+}
 
 // ── 三个汉化层的关闭直通 / 开启替换 ───────────────────────────────────────
 for (const [key, apply, batchName] of [
