@@ -73,6 +73,8 @@ node plugins/self-test.mjs
 
 自测覆盖包清单、五个预设组合、开关默认值、汉化层关闭直通与开启替换、Chat 的条目交换和零注入、引玉提示词，以及浏览器客户端注册协议。
 
+机制说明与踩坑记录在 `文档/`（本目录不进 git 追踪）；代码注释只留结论并指回对应那篇。
+
 单独检查语法：
 
 ```sh
@@ -90,6 +92,7 @@ dsh-agent-preset/
 │   ├── agent-preset.mjs      开关服务端：发布镜像、交换 Chat、启停引玉
 │   ├── preset-state.mjs      五个开关的进程内镜像
 │   ├── client.js             插件管理页配置卡
+│   ├── zh-common.mjs         三份汉化层共用的替换机制
 │   ├── yayan-zh.mjs          雅言汉化层
 │   ├── cangjie-zh.mjs        仓颉汉化层
 │   ├── maliang-zh.mjs        马良汉化层

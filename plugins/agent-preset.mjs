@@ -38,7 +38,7 @@ function snapshot(config) {
 	return Object.fromEntries(PRESET_KEYS.map(key => [key, readFlag(config, key)]))
 }
 
-/** 等一帧，给同一次组合里的预设行留出创建时间。 */
+/** 等 20 ms，给同一次组合里的预设行留出创建时间 */
 const tick = () => new Promise(resolve => setTimeout(resolve, 20))
 
 /** 等一个条目真正停稳，避免同一个 config.id 在切换时短暂重复。 */
@@ -55,6 +55,7 @@ async function resolveEntry(ctx, id) {
 		try {
 			return ctx.loader.resolve(id)
 		} catch {
+			// 行还没创建，下一帧再试
 			await tick()
 		}
 	}
@@ -95,14 +96,10 @@ async function syncYinyu(ctx, enabled) {
 	if (entry.disabled !== disabled) await entry.update({ disabled })
 }
 
-/**
- * 主插件：同步五个开关。汉化层从 preset-state 读取；Chat 与引玉条目在这里启停。
- * @param ctx - 当前 bundle 行的 Context。
- * @param config - 带 volatile 引用的配置。
- */
+/** 主插件：同步五个开关。汉化层从 preset-state 读取，Chat 与引玉条目在这里启停 */
 export function apply(ctx, config) {
 	let active = true
-	let queue = Promise.resolve()
+	let syncQueue = Promise.resolve()
 
 	const publish = () => {
 		const flags = snapshot(config)
@@ -112,7 +109,7 @@ export function apply(ctx, config) {
 
 	const sync = () => {
 		const flags = publish()
-		queue = queue
+		syncQueue = syncQueue
 			.then(async () => {
 				if (!active) return
 				await syncChat(ctx, flags.chat)

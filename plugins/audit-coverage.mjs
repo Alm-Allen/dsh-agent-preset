@@ -1,25 +1,8 @@
 /**
- * 覆盖率审计：拿 DSH 源码里的"当前英文原文"逐条实测本插件的翻译。
+ * 覆盖率审计：拿 DSH 源码里的英文原文逐条实测本插件的翻译。
  *
- * 用法：node audit-coverage.mjs <DSH 源码根目录>
- *   例如：node audit-coverage.mjs "E:\Study\typescript\deepseek-harness"
- *   也可用环境变量 DSH_CHECKOUT 指定；不给就报错退出。
- *
- * 它做三件事（全部只读，不改任何源码）：
- *   1. 扫 `packages/<组>/<包>/src/**`，折叠 `'a' + 'b'` 拼接后抽出会进入提示词的英文长句
- *      （`systemPrompt.section({ text })`、`defineTool({ description })` 及其参数描述）；
- *   2. 扫随附技能的 `SKILL.md` 描述、以及 `tool-skill` 里的技能目录散文；
- *   3. 把每一条喂给**本插件自己的翻译路径**——前一类走 `system-prompt/assemble`，
- *      后两类走 `agent/pre-step`（技能目录是以 `<system-reminder>` 注入 user 消息的）——
- *      文本没变的就是缺口，输出清单。
- *
- * 怎么读结果：
- *   - 清单里含 `${...}` 的条目多半是**假缺口**：那是模板串，运行时才填值，而表里是用
- *     `PATTERNS` 匹配"填好值"之后的文本。用渲染后的真实文本复核（`self-test.mjs` 里有现成的
- *     渲染用例集）。
- *   - 真缺口：把英文原文补进 `cangjie-zh.mjs` 的 `PROSE`（工具描述按句子片段收，一次覆盖
- *     多个配置变体）；含数字/名字的补进 `PATTERNS`。
- *   - 跑完记得用 `self-test.mjs` 再验一遍：变量检查、身份段注入、幂等性都在那边守。
+ * 用法：node audit-coverage.mjs <DSH 源码根目录>，也可用环境变量 DSH_CHECKOUT。只读，不改任何源码。
+ * 结果怎么读、真缺口补进哪张表，见 文档/机制/翻译层.md。
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -36,7 +19,7 @@ const SKIP = /(\\|\/)(node_modules|dist|lib|build|\.git|\.probe|\.idea|\.npm-cac
 const IS_TEST = /(\\|\/)tests?(\\|\/)|\.spec\.ts$|\.test\.ts$/i
 const normalize = text => text.replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, ' ').trim()
 
-// ── 1. 源码里的 section / 工具 / 参数文本 ─────────────────────────────────────
+// 1. 源码里的 section / 工具 / 参数文本
 const quoted = /'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"|`((?:[^`\\]|\\.)*)`/g
 const sourceItems = []
 const scanSource = dir => {
@@ -75,7 +58,7 @@ const scanSource = dir => {
 }
 scanSource(path.join(ROOT, 'packages'))
 
-// ── 2. 技能描述与技能目录散文（走 `agent/pre-step`）────────────────────────────
+// 2. 技能描述与技能目录散文（走 `agent/pre-step`）
 const skillItems = []
 const scanSkills = dir => {
 	let entries
@@ -121,7 +104,7 @@ if (fs.existsSync(toolSkillPath)) {
 	}
 }
 
-// ── 3. 用插件自己的翻译路径实测 ───────────────────────────────────────────────
+// 3. 用插件自己的翻译路径实测
 const { setPresetState } = await import('./preset-state.mjs')
 setPresetState({ yayan: true, cangjie: false, maliang: false, yinyu: true })
 const mod = await import(PLUGIN.href)
@@ -164,33 +147,33 @@ const throughTool = async text => {
 	return out.tools[0].description
 }
 
-const seen = new Set()
-const uncovered = []
+const seenKeySet = new Set()
+const uncoveredItemList = []
 for (const item of sourceItems) {
 	const key = item.text.slice(0, 90)
-	if (seen.has(key)) continue
-	seen.add(key)
+	if (seenKeySet.has(key)) continue
+	seenKeySet.add(key)
 	const viaTool = item.kind === 'section' ? item.text : await throughTool(item.text)
 	const viaAssemble = await throughAssemble(item.kind === 'section' ? item.text : `/** ${item.text} */`)
 	const toolTranslated = viaTool !== item.text
 	const assembleTranslated = viaAssemble.replace(/^\/\*\* | \*\/$/g, '') !== item.text
-	if (!toolTranslated && !assembleTranslated) uncovered.push(item)
+	if (!toolTranslated && !assembleTranslated) uncoveredItemList.push(item)
 }
 for (const item of skillItems) {
 	const key = item.text.slice(0, 90)
-	if (seen.has(key)) continue
-	seen.add(key)
+	if (seenKeySet.has(key)) continue
+	seenKeySet.add(key)
 	const after = await throughStep(item.text)
-	if (after.includes(item.text)) uncovered.push(item)
+	if (after.includes(item.text)) uncoveredItemList.push(item)
 }
 
-console.log(`源码候选 ${sourceItems.length} 条、技能/目录 ${skillItems.length} 条｜未覆盖 ${uncovered.length} 条`)
+console.log(`源码候选 ${sourceItems.length} 条、技能/目录 ${skillItems.length} 条｜未覆盖 ${uncoveredItemList.length} 条`)
 console.log('')
-for (const [index, item] of uncovered.entries()) {
+for (const [index, item] of uncoveredItemList.entries()) {
 	console.log(`#${index} [${item.kind}] ${item.file}`)
 	console.log('   ' + item.text.slice(0, 170))
 }
-if (uncovered.length > 0) {
+if (uncoveredItemList.length > 0) {
 	console.log('')
 	console.log(`含 \${...} 的条目多半是假缺口（运行时才填值，表里用 PATTERNS 匹配填好值的文本）——先用 self-test.mjs 的渲染用例复核。`)
 }

@@ -68,12 +68,8 @@ window.__ModuleLoader__.load({
 `
 
     function activeLanguage(locale) {
-      if (locale) {
-        try {
-          const value = locale.getSnapshot().active
-          if (typeof value === "string" && value) return value
-        } catch {}
-      }
+      const value = locale?.getSnapshot?.().active
+      if (typeof value === "string" && value) return value
       return typeof navigator === "undefined" ? "zh" : navigator.language
     }
 
@@ -199,7 +195,7 @@ window.__ModuleLoader__.load({
       }, ConfigCard))
     }
 
-    const exports = { inject: ["slots", "configForms"], apply }
-    return exports
+    const pluginExports = { inject: ["slots", "configForms"], apply }
+    return pluginExports
   },
 });

@@ -12,14 +12,14 @@ import { apply as applyZeroInjection } from './zero-injection.mjs'
 
 const ROOT = new URL('../', import.meta.url)
 const read = path => fs.readFile(new URL(path, ROOT), 'utf8')
-let checks = 0
+let checkCount = 0
 const ok = (condition, message) => {
-	checks += 1
+	checkCount += 1
 	assert.ok(condition, message)
 	console.log('✓ ' + message)
 }
 const equal = (actual, expected, message) => {
-	checks += 1
+	checkCount += 1
 	assert.deepEqual(actual, expected, message)
 	console.log('✓ ' + message)
 }
@@ -54,7 +54,7 @@ const BASE_ASSEMBLY = {
 	variables: {},
 }
 
-// ── 包与组合 ────────────────────────────────────────────────────────────────
+// 包与组合
 const manifest = JSON.parse(await read('package.json'))
 ok(manifest.name === '@alm-allen/dsh-agent-preset', '包名固定为 @alm-allen/dsh-agent-preset')
 const zhLocale = JSON.parse(await read('locale/zh.json'))
@@ -88,7 +88,7 @@ ok(chat.includes('disabled: true') && chat.includes('id: preset-chat'), 'Chat �
 ok(chat.includes('id: minimal') && chat.includes("name: 'Chat 模式'"), 'Chat 与原生 minimal 共用 config.id')
 ok(chat.includes('@alm-allen/dsh-agent-preset/no-global-tools') && chat.includes('@alm-allen/dsh-agent-preset/zero-injection'), 'Chat 挂载零工具与零注入兜底')
 
-// ── 默认值 ──────────────────────────────────────────────────────────────────
+// 默认值
 equal(PRESET_DEFAULTS, { yayan: false, cangjie: false, maliang: false, chat: false, yinyu: true }, '进程内默认值符合要求')
 equal(getPresetState(), PRESET_DEFAULTS, '进程内镜像初始值正确')
 for (const key of ['yayan', 'cangjie', 'maliang', 'chat']) {
@@ -101,7 +101,7 @@ const client = await read('plugins/client.js')
 const fallbacks = [...client.matchAll(/fallback: (true|false)/g)].map(match => match[1])
 equal(fallbacks.sort(), ['false', 'false', 'false', 'false', 'true'], '客户端五个默认值与 Host 一致')
 
-// ── 主插件：开关镜像、Chat 预设交换与引玉条目启停 ─────────────────────────
+// 主插件：开关镜像、Chat 预设交换与引玉条目启停
 {
 	const updates = []
 	const makeEntry = (id, disabled) => ({
@@ -146,7 +146,7 @@ equal(fallbacks.sort(), ['false', 'false', 'false', 'false', 'true'], '客户端
 	ok(zeroSource.includes('tools: []') && zeroSource.includes('contexts: []'), 'Chat 的 zero-injection 仍清空组装面')
 }
 
-// ── Chat 的两个零注入模块仍按契约工作 ──────────────────────────────────────
+// Chat 的两个零注入模块仍按契约工作
 {
 	let restriction
 	applyNoGlobalTools({
@@ -171,7 +171,7 @@ equal(fallbacks.sort(), ['false', 'false', 'false', 'false', 'true'], '客户端
 	equal(stripped.sections, withRuntime.sections, 'Chat zero-injection 保留 sections 处理权')
 }
 
-// ── 三个汉化层的关闭直通 / 开启替换 ───────────────────────────────────────
+// 三个汉化层的关闭直通 / 开启替换
 for (const [key, apply, batchName] of [
 	['yayan', applyYayan, undefined],
 	['cangjie', applyCangjie, 'cangjie:batch-calls'],
@@ -203,13 +203,42 @@ for (const [key, apply, batchName] of [
 	}
 }
 
-// ── plan mode 不在 YAML 里静态汉化，而由开关打开时的翻译层负责 ─────────────
-for (const file of ['yayan-zh.mjs', 'cangjie-zh.mjs', 'maliang-zh.mjs']) {
-	const source = await read('plugins/' + file)
-	ok(source.includes('entry.text === PLAN_MODE_EN ? PLAN_MODE_ZH : translateText(entry.text)'), file + ' 带 plan mode 翻译')
+// 系统提示词恒定性：工作目录与提示词变量不能渗进 sections
+{
+	// 注入一条哨兵路径：它只该出现在 contexts 里，不能出现在 sections
+	const LEAKY = {
+		sections: [
+			{ name: 'harness:identity', text: 'You are an AI agent powered by DeepSeek Harness. Your working directory is Z:\\sentinel-leak-path\\project.' },
+			{ name: 'deployment:persona-prefix', text: 'You are a coding agent powered by the {{model}} model. Your working directory is Z:\\sentinel-leak-path\\project.' },
+			{ name: 'tool:read', text: 'Use the read tool — not shell commands like cat — to inspect text files.' },
+		],
+		contexts: [{ name: 'working-directory:current', text: 'Current working directory: "Z:\\\\sentinel-leak-path\\\\project".' }],
+		tools: [],
+		variables: { model: 'a-model', provider: 'a-provider' },
+	}
+	const LEAK = /sentinel-leak-path|\{\{/
+	setPresetState({ yayan: true, cangjie: true, maliang: true, chat: false, yinyu: true })
+	for (const [key, apply] of [['yayan', applyYayan], ['cangjie', applyCangjie], ['maliang', applyMaliang], ['yinyu', applyYinyu]]) {
+		const { ctx, handlers } = harness()
+		apply(ctx)
+		const assembled = await handlers.get('system-prompt/assemble')({}, {}, async () => LEAKY)
+		const leaked = assembled.sections.filter(section => LEAK.test(section.text ?? '')).map(section => section.name)
+		equal(leaked, [], key + ' 的系统提示词不含路径与提示词变量')
+		ok(assembled.contexts.some(context => context.name === 'working-directory:current'), key + ' 工作目录仍留在运行时上下文里')
+	}
 }
 
-// ── 引玉：仍是单段提示词 + 第一个 tooling context ───────────────────────────
+// plan mode 不在 YAML 里静态汉化，而由开关打开时的翻译层负责
+for (const file of ['yayan-zh.mjs', 'cangjie-zh.mjs', 'maliang-zh.mjs']) {
+	const source = await read('plugins/' + file)
+	ok(source.includes('const PLAN_MODE_EN = ') && source.includes('const PLAN_MODE_ZH = '), file + ' 带 plan mode 表')
+}
+const commonSource = await read('plugins/zh-common.mjs')
+ok(commonSource.includes('entry.text === planMode.en'), '公共层按原文精确匹配 plan mode 段')
+ok(commonSource.includes('ctx.on(\'agent/pre-step\''), '公共层注册 agent/pre-step')
+ok(commonSource.includes('isPresetEnabled(presetKey)'), '公共层按预设开关直通')
+
+// 引玉：系统提示词严格只有一句，tooling 在第一个 runtime context
 setPresetState(PRESET_DEFAULTS)
 {
 	const { ctx, handlers } = harness()
@@ -224,14 +253,33 @@ setPresetState(PRESET_DEFAULTS)
 		],
 		contexts: [{ name: 'other', text: 'keep me' }],
 	}))
-	equal(result.sections, [{ name: 'deployment:persona-prefix', text: PROMPT_TEXT, interpolate: false }], '引玉系统提示词仍只有一句')
-	ok(result.contexts[0]?.name === TOOLING_CONTEXT, '引玉 tooling context 仍在第一位')
-	ok(result.contexts[0]?.text.includes('Execution policy:'), '引玉上下文仍含执行政策')
-	ok(result.contexts[0]?.text.includes('SDK declarations'), '引玉上下文仍含 SDK')
-	ok(result.contexts.some(context => context.name === 'other'), '引玉保留其它 runtime context')
+	equal(result.sections, [{ name: 'deployment:persona-prefix', text: PROMPT_TEXT, interpolate: false }], '引玉系统提示词严格只有一句')
+	const tooling = result.contexts[0]
+	equal(tooling?.name, TOOLING_CONTEXT, '引玉 tooling context 在第一位')
+	ok(tooling.text.includes('Execution policy:'), '引玉 tooling 段含执行政策')
+	ok(tooling.text.includes('PTC only'), '引玉 tooling 段含 PTC-only 规则')
+	ok(tooling.text.includes('SDK declarations'), '引玉 tooling 段含 SDK 声明')
+	ok(tooling.interpolate === false, '引玉 tooling 段钉 interpolate: false')
+	equal(result.contexts.map(context => context.name), [TOOLING_CONTEXT, 'other'], '引玉保留其它 runtime context')
 }
 
-// ── 客户端 bundle 协议 ─────────────────────────────────────────────────────
+// 引玉把运行时上下文提到工作区指令之前
+{
+	const { ctx, handlers } = harness()
+	applyYinyu(ctx)
+	const preStep = handlers.get('agent/pre-step')
+	const userMessage = { source: { kind: 'user' }, content: [{ type: 'text', text: 'hello' }] }
+	const instructions = { source: { kind: 'agent-instructions' }, content: [] }
+	const snapshot = { source: { kind: 'runtime-context' }, content: [] }
+	const reordered = await preStep({}, async () => ({ kind: 'enter', messages: [userMessage, instructions, snapshot] }))
+	equal(reordered.messages.map(message => message.source.kind), ['user', 'runtime-context', 'agent-instructions'], '引玉把运行时上下文提到工作区指令之前')
+	const withoutInstructions = await preStep({}, async () => ({ kind: 'enter', messages: [userMessage, snapshot] }))
+	equal(withoutInstructions.messages.map(message => message.source.kind), ['user', 'runtime-context'], '没有工作区指令时不改动顺序')
+	const twice = await preStep({}, async () => reordered)
+	equal(twice.messages.map(message => message.source.kind), ['user', 'runtime-context', 'agent-instructions'], '重排是幂等的')
+}
+
+// 客户端 bundle 协议
 {
 	let registered
 	const sandbox = { window: { __ModuleLoader__: { load(value) { registered = value } } } }
@@ -242,4 +290,4 @@ setPresetState(PRESET_DEFAULTS)
 	ok(typeof exports.apply === 'function', '客户端导出 apply')
 }
 
-console.log('\n全部通过（' + checks + ' 项）')
+console.log('\n全部通过（' + checkCount + ' 项）')

@@ -4,3 +4,7 @@ AGENTS.md
 *.bak
 .archive/
 .plugin-test/
+.agents/
+.idea/
+文档/
+
