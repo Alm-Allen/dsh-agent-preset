@@ -1,0 +1,61 @@
+{
+  "name": "@alm-allen/dsh-preset-pack",
+  "version": "2026.10.25",
+  "description": "四个 DSH Agent 预设合并成一个 bundle：雅言、仓颉、马良把三个原生预设按开关切换为中文，引玉保留独立极简 PTC 预设；插件管理页直接启停，原生汉化默认关闭、引玉默认开启。",
+  "type": "module",
+  "license": "MIT",
+  "main": "./plugins/preset-pack.mjs",
+  "exports": {
+    ".": "./plugins/preset-pack.mjs",
+    "./yayan-zh": "./plugins/yayan-zh.mjs",
+    "./cangjie-zh": "./plugins/cangjie-zh.mjs",
+    "./maliang-zh": "./plugins/maliang-zh.mjs",
+    "./yinyu-stage": "./plugins/yinyu-stage.mjs",
+    "./client": "./plugins/client.js",
+    "./self-test": "./plugins/self-test.mjs",
+    "./audit-coverage": "./plugins/audit-coverage.mjs",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "plugins",
+    "cordis.patch.yml",
+    "locale",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alm-Allen/dsh-preset-pack.git"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "agent-preset",
+    "yayan",
+    "cangjie",
+    "maliang",
+    "yinyu"
+  ],
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.18.4"
+  }
+}

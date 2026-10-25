@@ -1,0 +1,6 @@
+node_modules/
+文档/
+AGENTS.md
+*.bak
+.archive/
+.plugin-test/
