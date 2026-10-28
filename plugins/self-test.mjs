@@ -62,6 +62,7 @@ const enLocale = JSON.parse(await read('locale/en.json'))
 equal(zhLocale.meta?.title, '智能体预设', '插件管理页中文显示名为智能体预设')
 equal(enLocale.meta?.title, 'Agent Presets', '插件管理页英文显示名为 Agent Presets')
 ok(manifest.dsh?.bundle?.patch === './cordis.patch.yml', 'bundle patch 指向 cordis.patch.yml')
+ok(manifest.peerDependencies?.['@deepseek-ai/dsh-tool-subagent-control'] !== undefined, '垫片依赖声明为 peer，linked 安装才走引擎解析')
 ok(manifest.dsh?.client?.platform === 'web', '客户端半区声明为 web')
 for (const [key, value] of Object.entries(manifest.exports ?? {})) {
 	if (key.includes('*')) continue
@@ -87,6 +88,15 @@ ok(yinyu.includes('id: preset-yinyu'), '引玉仍是新增 preset 条目')
 ok(chat.includes('disabled: true') && chat.includes('id: preset-chat'), 'Chat 预设条目默认停用')
 ok(chat.includes('id: minimal') && chat.includes("name: 'Chat 模式'"), 'Chat 与原生 minimal 共用 config.id')
 ok(chat.includes('@alm-allen/dsh-agent-preset/no-global-tools') && chat.includes('@alm-allen/dsh-agent-preset/zero-injection'), 'Chat 挂载零工具与零注入兜底')
+
+// rc 与 α 的行差异：list_agents 走垫片，tool-subagent 共存两套模型选择键
+const shimSource = await read('plugins/list-agents-shim.mjs')
+ok(shimSource.includes('ERR_MODULE_NOT_FOUND') && shimSource.includes('ERR_PACKAGE_PATH_NOT_EXPORTED'), '垫片对子包缺失的两种错误都静默退让')
+ok(!patch.includes("'@deepseek-ai/dsh-tool-subagent-control/list-agents'"), '不再直连 rc 的 list-agents 子包')
+for (const [label, section] of [['雅言', standard], ['仓颉', ptc], ['马良', cordis], ['引玉', yinyu]]) {
+	ok(section.includes("name: '@alm-allen/dsh-agent-preset/list-agents-shim'"), label + '的 list_agents 行挂版本垫片')
+	ok(section.includes('modelSelectionSettings: true') && section.includes('modelSelection: true') && section.includes('modelDiscovery: true'), label + '同时写 rc 与 α 的模型选择键')
+}
 
 // 默认值
 equal(PRESET_DEFAULTS, { yayan: false, cangjie: false, maliang: false, chat: false, yinyu: true }, '进程内默认值符合要求')
@@ -233,9 +243,22 @@ equal(fallbacks.sort(), ['false', 'false', 'false', 'false', 'true'], '客户端
 	equal(restriction, { allow: [] }, 'Chat no-global-tools 仍声明空 allow')
 
 	let assemble
+	let assembleOptions
+	let shadowed
 	applyZeroInjection({
-		on(name, handler) { if (name === 'system-prompt/assemble') assemble = handler },
+		on(name, handler, options) {
+			if (name !== 'system-prompt/assemble') return
+			assemble = handler
+			assembleOptions = options
+		},
+		systemPrompt: {
+			context(entry) { shadowed = entry; return () => {} },
+			getContextOrder(name) { return name === 'WORKING_DIRECTORY' ? 100 : 0 },
+		},
 	})
+	equal(shadowed?.name, 'working-directory:current', 'Chat 遮蔽宿主的工作目录上下文')
+	ok(shadowed?.required === true && shadowed?.interpolate === false && shadowed?.text === '', '遮蔽条目是 required 的空文本')
+	ok(assembleOptions?.prepend === true, 'Chat 的 zero-injection 排到最外层收尾')
 	const withRuntime = {
 		sections: [{ name: 'keep', text: 'x' }],
 		contexts: [{ name: 'required', text: 'must go' }],
@@ -279,6 +302,31 @@ for (const [key, apply, batchName] of [
 	} else {
 		ok(translated.sections.at(-1)?.name === batchName, key + ' 在末尾追加批处理段')
 	}
+}
+
+// PTC 的 tools:sdk：工具描述走 DOCS，按渲染侧折叠后的单行文本查表
+{
+	setPresetState({ yayan: false, cangjie: true, maliang: false, chat: false, yinyu: true })
+	const { ctx, handlers } = harness()
+	applyCangjie(ctx)
+	const assemble = handlers.get('system-prompt/assemble')
+	const PRESENT_DOC = 'Declare existing files as final deliverables for the user. Hosts may show presented files only after your turn ends, so call it once the files are final. If the user needs to review files earlier, such as before a tool call that waits for their answer, link them in your message instead. Use it when the user needs a separate file, especially Office documents, spreadsheets, and slide decks; prefer your final response when that suffices. The user opens the current files; their contents are not copied.'
+	const sdk = await assemble({}, {}, async () => ({
+		sections: [{ name: 'tools:sdk', text: `/** ${PRESENT_DOC} */` }],
+		contexts: [],
+		tools: [],
+		variables: {},
+	}))
+	const sdkSection = sdk.sections.find(section => section.name === 'tools:sdk')
+	ok(sdkSection?.text.includes('把已存在的文件声明为'), '仓颉翻译 PTC 里 present 的新措辞')
+	const wrapped = await assemble({}, {}, async () => ({
+		sections: [{ name: 'tools:sdk', text: '/** Submitted answer batch with one item per question.\n   A skipped question has empty selected and no custom; unlike pending, the user has completed the batch. */' }],
+		contexts: [],
+		tools: [],
+		variables: {},
+	}))
+	const wrappedSection = wrapped.sections.find(section => section.name === 'tools:sdk')
+	ok(wrappedSection?.text.includes('已提交的答案批'), '渲染侧把描述折叠成单行后仍能命中带换行的键')
 }
 
 // 系统提示词恒定性：工作目录与提示词变量不能渗进 sections

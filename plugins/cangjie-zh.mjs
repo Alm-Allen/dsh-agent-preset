@@ -1908,6 +1908,36 @@ const DOCS = new Map([
 		'minute hour day-of-month month day-of-week, for example "*/15 9-17 * * 1-5". When both day fields are restricted, a date matches if either one matches.',
 		'分钟 小时 日 月 星期，例如 "*/15 9-17 * * 1-5"。当两个日期字段都有限制时，只要其中一个匹配，该日期就匹配。',
 	],
+
+	// 0.2.2-alpha.2：present 补充了「宿主展示时机」与「等回答前改用链接」两句，
+	// timed ask_user_question 的输出类型与 list_subagent_models 是新工具的说明。
+	[
+		"Declare existing files as final deliverables for the user. Hosts may show presented files only after your turn ends, so call it once the files are final. If the user needs to review files earlier, such as before a tool call that waits for their answer, link them in your message instead. Use it when the user needs a separate file, especially Office documents, spreadsheets, and slide decks; prefer your final response when that suffices. The user opens the current files; their contents are not copied.",
+		"把已存在的文件声明为用户可打开的最终交付物。宿主可能只在你的回合结束后才展示这些文件，所以在文件定稿后再调用。若用户需要更早查看（例如在一次等待用户回答的工具调用之前），请改为在消息里给出链接。当用户需要一份单独的文件时使用它，Office 文档、电子表格与幻灯片尤其如此；最终答复本身就够时优先用最终答复。用户打开的是当前文件，其内容不会被复制。",
+	],
+	["The bash command to execute.", "要执行的 bash 命令。"],
+	[
+		"Inspect subagent models without changing the current Agent. No arguments: providers; `provider`: allowed models; `provider` + `model`: that model and its reasoning efforts. Inspect options here before selecting a child provider and model; use returned ids for delegation.",
+		"在不改变当前 Agent 的前提下查看 subagent 可用的模型。不带参数：列出 provider；只给 `provider`：该 provider 允许的模型；`provider` + `model`：该模型及其推理档位。为子 agent 选 provider 与模型之前先在这里查看，委派时用返回的 id。",
+	],
+	["Registered LLM provider id.", "已注册的 LLM provider id。"],
+	["Exact model id; requires provider.", "确切的模型 id；需要同时给出 provider。"],
+	[
+		"True when the foreground wait expired before the user submitted an answer batch. The questions remain answerable; this is not a skipped answer.",
+		"前台等待在用户提交答案批之前到期时为 true。这些问题仍然可以回答；这不是被跳过的答案。",
+	],
+	["Tool call whose unanswered questions remain pending.", "其未回答的问题仍处于待答状态的工具调用。"],
+	["How to continue while the questions stay answerable.", "问题仍可回答时该如何继续。"],
+	[
+		"Submitted answer batch with one item per question. A skipped question has empty selected and no custom; unlike pending, the user has completed the batch.",
+		"已提交的答案批，每个问题一项。被跳过的问题 selected 为空且没有 custom；与 pending 不同，用户已经完成了这一批。",
+	],
+	["Stable question id echoed from the request.", "从请求回显的稳定问题 id。"],
+	[
+		"Selected option labels. Empty with no custom means the user explicitly skipped this question.",
+		"被选中的选项标签。为空且没有 custom 表示用户明确跳过了这个问题。",
+	],
+	["Optional free-form answer; omitted for a skipped question.", "可选的自由文本答案；被跳过的问题省略。"],
 ]);
 
 /** plan mode 段不能写进 YAML（那里只能填一种语言），由运行时按原文精确匹配 */

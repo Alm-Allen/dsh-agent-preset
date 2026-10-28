@@ -1,7 +1,8 @@
 /**
  * 覆盖率审计：拿 DSH 源码里的英文原文逐条实测本插件的翻译。
  *
- * 用法：node audit-coverage.mjs <DSH 源码根目录>，也可用环境变量 DSH_CHECKOUT。只读，不改任何源码。
+ * 用法：node audit-coverage.mjs <DSH 源码根目录> [yayan|cangjie|maliang]，也可用环境变量 DSH_CHECKOUT。
+ * preset 省略时按 yayan（标准模式的工具描述走独立 schema）。只读，不改任何源码。
  * 结果怎么读、真缺口补进哪张表，见 文档/机制/翻译层.md。
  */
 import fs from 'node:fs'
@@ -13,7 +14,12 @@ if (ROOT === undefined || ROOT.length === 0) {
 	console.error('用法：node audit-coverage.mjs <DSH 源码根目录>（或用环境变量 DSH_CHECKOUT）')
 	process.exit(2)
 }
-const PLUGIN = new URL('./yayan-zh.mjs', import.meta.url)
+const PRESET = process.argv[3] ?? 'yayan'
+if (!['yayan', 'cangjie', 'maliang'].includes(PRESET)) {
+	console.error(`未知预设 ${PRESET}：只能是 yayan、cangjie 或 maliang`)
+	process.exit(2)
+}
+const PLUGIN = new URL(`./${PRESET}-zh.mjs`, import.meta.url)
 
 const SKIP = /(\\|\/)(node_modules|dist|lib|build|\.git|\.probe|\.idea|\.npm-cache|coverage|snapshots|fixtures|\.agents)(\\|\/)/i
 const IS_TEST = /(\\|\/)tests?(\\|\/)|\.spec\.ts$|\.test\.ts$/i
@@ -106,7 +112,7 @@ if (fs.existsSync(toolSkillPath)) {
 
 // 3. 用插件自己的翻译路径实测
 const { setPresetState } = await import('./preset-state.mjs')
-setPresetState({ yayan: true, cangjie: false, maliang: false, yinyu: true })
+setPresetState({ yayan: PRESET === 'yayan', cangjie: PRESET === 'cangjie', maliang: PRESET === 'maliang', yinyu: true })
 const mod = await import(PLUGIN.href)
 let assembleHandler
 let stepHandler

@@ -51,6 +51,13 @@ export function createZhLayer({ presetKey, prose, patterns, docs, planMode, batc
 	/** 把中文里可能出现的注释闭合符重新转义，避免提前终止 JSDoc */
 	const escapeDoc = (body) => body.replaceAll('*/', '*\\/')
 
+	// 渲染侧把工具描述折叠成单行（docLines 的 \s+ → 空格），表里带换行的键必须
+	// 也能命中折叠后的文本；两侧都归一化空白再查。
+	const collapseDoc = (text) => text.replace(/\s+/g, ' ').trim()
+	const docIndex = docs === undefined
+		? undefined
+		: new Map([...docs].map(([key, value]) => [collapseDoc(key), value]))
+
 	// 顺序固定：精确段落、正则、JSDoc、子串。未知文本原样返回
 	const translateText = (text) => {
 		if (typeof text !== 'string' || text.length === 0) return text
@@ -60,7 +67,8 @@ export function createZhLayer({ presetKey, prose, patterns, docs, planMode, batc
 		for (const [pattern, replacement] of patterns) translated = translated.replace(pattern, replacement)
 		if (docs !== undefined && translated.includes('/** ')) {
 			translated = translated.replace(DOC_RE, (whole, body) => {
-				const zh = docs.get(unescapeDoc(body))
+				const raw = unescapeDoc(body)
+				const zh = docs.get(raw) ?? docIndex.get(collapseDoc(raw))
 				return zh === undefined ? whole : `/** ${escapeDoc(zh)} */`
 			})
 		}

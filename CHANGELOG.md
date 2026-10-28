@@ -1,5 +1,21 @@
 # Changelog
 
+## [2026.10.28] - 2026-10-28
+
+### Fixed
+
+- 修复 desktop（dsh α 0.2.2-alpha.2）无法新建会话：`tool-subagent-list-agents` 行原来指向 `@deepseek-ai/dsh-tool-subagent-control/list-agents`，而 α 已删除该子路径导出、把工具并进主包，预设审计因此报 `never started` 并拒绝挂载整个预设。
+- 四个预设（雅言、仓颉、马良、引玉）的该行一起改挂包内垫片 `plugins/list-agents-shim.mjs`：子包在就原样转挂，子包没了就静默退让，两版的实际工具集不变。
+- `tool-subagent` 的模型选择同时写 `modelSelectionSettings`（rc）与 `modelSelection`、`modelDiscovery`（α）。schemastery 的 object 解析保留未声明的键，两版各取所需。
+- 修复 Chat 模式不再零环境：宿主的 `dsh-working-directory` 以 `prepend: true` 排在瀑布最外层，`await next()` 之后又把 `required: true` 的 `working-directory:current` 补回，`refreshContext` 每步还会再补一次。现在 zero-injection 自己 prepend 收尾，并用同 scope 的同名空上下文在 provider 层遮蔽宿主的条目，运行时上下文快照不再产生。
+- 修复 PTC 模式透出英文：工具描述走渲染侧折叠成单行的 JSDoc，表里带换行的键命中不了；查表两侧改为归一化空白，并补齐 present、timed `ask_user_question` 输出、`list_subagent_models` 与 bash 命令参数的新措辞。
+
+### Changed
+
+- 同一份 `cordis.patch.yml` 现在同时适用于 dsh rc（web）与 α（desktop）；两版 shipped 的全部差异与升级复核步骤写进 `文档/机制/双版本兼容.md`。
+- 自测新增垫片行为、双版本配置键、Chat 遮蔽上下文的断言，共 118 项。
+- `node plugins/audit-coverage.mjs <源码根> [yayan|cangjie|maliang]` 现在可以按预设审计覆盖率，PTC 的词条缺口靠它列出。
+
 ## [2026.10.25] - 2026-10-25
 
 ### Added

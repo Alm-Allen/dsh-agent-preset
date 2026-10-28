@@ -13,6 +13,7 @@
     "./yinyu-stage": "./plugins/yinyu-stage.mjs",
     "./no-global-tools": "./plugins/no-global-tools.mjs",
     "./zero-injection": "./plugins/zero-injection.mjs",
+    "./list-agents-shim": "./plugins/list-agents-shim.mjs",
     "./client": "./plugins/client.js",
     "./self-test": "./plugins/self-test.mjs",
     "./audit-coverage": "./plugins/audit-coverage.mjs",
@@ -57,6 +58,14 @@
   ],
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tool-subagent-control": "*"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-tool-subagent-control": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@deepseek-ai/schemastery": "^3.18.4"

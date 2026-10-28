@@ -4,8 +4,10 @@
 # 由主插件交换两条 Loader 条目；引玉关闭时停用 preset-yinyu。
 # 默认：四个原生预设替代关闭，引玉开启。
 #
-# 三个 override 的 config.plugins 均逐行取自 dsh 0.2.1-rc.3 的 shipped 预设，
-# 只在 persona 后插入各自的中文化层。升级 dsh 后要重新对照 shipped 文件。
+# 三个 override 的 config.plugins 逐行取自 dsh 的 shipped 预设，rc（0.2.1-rc.4）与 α（0.2.2-alpha.2）
+# 已逐行对齐，只在 persona 后插入各自的中文化层。两版之间有差异的行只有两处，都由本文件吸收：
+# list_agents 行挂包内垫片（rc 是独立子包，α 已并入主包），tool-subagent 同时写两套模型选择键。
+# 升级 dsh 后要重新对照两版的 presets/*.patch.yml，差异点见 文档/机制/双版本兼容.md。
 
 - insert:
     - id: agent-preset
@@ -101,13 +103,15 @@
           - id: tool-subagent-control
             name: '@deepseek-ai/dsh-tool-subagent-control'
           - id: tool-subagent-list-agents
-            name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+            name: '@alm-allen/dsh-agent-preset/list-agents-shim'
           - id: tool-subagent
             name: '@deepseek-ai/dsh-tool-subagent'
             config:
               provider: spawn
               toolName: subagent
               modelSelectionSettings: true
+              modelSelection: true
+              modelDiscovery: true
           - id: tool-subagent-fork
             name: '@deepseek-ai/dsh-tool-subagent'
             config:
@@ -228,13 +232,15 @@
           - id: tool-subagent-control
             name: '@deepseek-ai/dsh-tool-subagent-control'
           - id: tool-subagent-list-agents
-            name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+            name: '@alm-allen/dsh-agent-preset/list-agents-shim'
           - id: tool-subagent
             name: '@deepseek-ai/dsh-tool-subagent'
             config:
               provider: spawn
               toolName: subagent
               modelSelectionSettings: true
+              modelSelection: true
+              modelDiscovery: true
           - id: tool-subagent-fork
             name: '@deepseek-ai/dsh-tool-subagent'
             config:
@@ -360,13 +366,15 @@
           - id: tool-subagent-control
             name: '@deepseek-ai/dsh-tool-subagent-control'
           - id: tool-subagent-list-agents
-            name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+            name: '@alm-allen/dsh-agent-preset/list-agents-shim'
           - id: tool-subagent
             name: '@deepseek-ai/dsh-tool-subagent'
             config:
               provider: spawn
               toolName: subagent
               modelSelectionSettings: true
+              modelSelection: true
+              modelDiscovery: true
           - id: tool-subagent-fork
             name: '@deepseek-ai/dsh-tool-subagent'
             config:
@@ -501,13 +509,15 @@
               - id: tool-subagent-control
                 name: '@deepseek-ai/dsh-tool-subagent-control'
               - id: tool-subagent-list-agents
-                name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+                name: '@alm-allen/dsh-agent-preset/list-agents-shim'
               - id: tool-subagent
                 name: '@deepseek-ai/dsh-tool-subagent'
                 config:
                   provider: spawn
                   toolName: subagent
                   modelSelectionSettings: true
+                  modelSelection: true
+                  modelDiscovery: true
               - id: tool-subagent-fork
                 name: '@deepseek-ai/dsh-tool-subagent'
                 config:
