@@ -1,16 +1,16 @@
 # 智能体预设（dsh-agent-preset）
 
-把五个 **DeepSeek Harness（DSH）** Agent 预设装进一个插件，并在插件管理页逐个开关。插件在 DSH 中显示为 **智能体预设**。
+把三个 **DeepSeek Harness（DSH）** Agent 预设的汉化层装进一个插件，并在插件管理页逐个开关。插件在 DSH 中显示为 **智能体预设**。
 
 | 预设 | 作用 | 默认 | 关闭时 |
 |---|---|---|---|
 | 雅言 | 把原生标准模式（standard）汉化 | 关 | DSH 出货的英文标准模式 |
 | 仓颉 | 把原生 PTC 模式（ptc）汉化 | 关 | DSH 出货的英文 PTC 模式 |
 | 马良 | 把原生创造模式（cordis）汉化 | 关 | DSH 出货的英文创造模式 |
-| Chat | 把原生极简模式（minimal）换成零工具、零系统提示词的纯对话组合 | 关 | DSH 出货的极简模式 |
-| 引玉 | 新增一个一句系统提示词 + PTC `run_code` 环境的独立预设 | 开 | 从 Agent 预设列表中移除 |
 
-安装一次即可管理全部五项，不必为每个预设各装一个插件。
+安装一次即可管理全部三项，不必为每个预设各装一个插件。
+
+本插件只覆盖这三个原生预设，不新增预设，也不替换极简模式。
 
 ## 安装
 
@@ -30,7 +30,7 @@ github:Alm-Allen/dsh-agent-preset
 dsh plugin --profile web add github:Alm-Allen/dsh-agent-preset
 ```
 
-安装后重启 DSH，并刷新网页。插件详情页会出现五个开关；开关保存后立即生效，不需要重装插件或重启 DSH。
+安装后重启 DSH，并刷新网页。插件详情页会出现三个开关；开关保存后立即生效，不需要重装插件或重启 DSH。
 
 ### 从旧插件迁移
 
@@ -46,19 +46,18 @@ dsh plugin --profile web remove @alm-allen/dsh-yinyu-preset
 
 再安装本插件。新旧包同时存在会重复覆盖预设或注册同名预设。
 
+如果曾用插件管理页的条目开关手动启用过 Chat 或引玉，profile 里会留下 `preset-chat`、`preset-yinyu` 两条；本版本已删除这两个预设，升级后需自行移除这两条。
+
 ## 使用
 
 打开 **插件 → 智能体预设**，按需切换：
 
-- **雅言、仓颉、马良、Chat** 是原生预设替代，默认关闭。关闭时对应预设与当前 DSH 出货版本逐项一致。
-- **引玉** 是非原生预设，默认开启；关闭后不再出现在 Agent 预设列表。
+- **雅言、仓颉、马良** 是原生预设替代，默认关闭。关闭时对应预设与当前 DSH 出货版本逐项一致。
 - 开关即时保存。新会话使用当前预设列表；已有会话继续使用创建时选中的预设版本。
-
-Chat 与原生极简模式共用 `config.id: minimal`，两者不能同时注册。主插件开启 Chat 时先停用原生 `preset-minimal`，再启用 `preset-chat`；关闭时反向交换。
 
 ## 兼容性
 
-当前基准是 **dsh 0.2.1-rc.3**。插件通过 `cordis.patch.yml` 完整覆盖三个原生预设，并插入 Chat 与引玉条目，因此升级 DSH 后需要重新核对出货预设，尤其是 `standard`、`ptc`、`cordis`、`minimal` 的插件行。
+当前基准是 **dsh 0.2.1-rc.4**（web）与 **0.2.2-alpha.2**（desktop）。插件通过 `cordis.patch.yml` 完整覆盖三个原生预设，因此升级 DSH 后需要重新核对出货预设，尤其是 `standard`、`ptc`、`cordis` 的插件行。
 
 包内没有构建步骤：`plugins/` 与 `cordis.patch.yml` 就是发布产物。
 
@@ -71,7 +70,7 @@ npm install
 node plugins/self-test.mjs
 ```
 
-自测覆盖包清单、五个预设组合、开关默认值、汉化层关闭直通与开启替换、Chat 的条目交换和零注入、引玉提示词，以及浏览器客户端注册协议。
+自测覆盖包清单、三个预设组合、开关默认值、汉化层关闭直通与开启替换，以及浏览器客户端注册协议。
 
 机制说明与踩坑记录在 `文档/`（本目录不进 git 追踪）；代码注释只留结论并指回对应那篇。
 
@@ -87,18 +86,16 @@ node --check plugins/client.js
 ```text
 dsh-agent-preset/
 ├── package.json              插件清单、bundle patch、web 客户端入口
-├── cordis.patch.yml          主插件 + 三个原生预设覆盖 + Chat/引玉条目
+├── cordis.patch.yml          主插件 + 三个原生预设覆盖
 ├── plugins/
-│   ├── agent-preset.mjs      开关服务端：发布镜像、交换 Chat、启停引玉
-│   ├── preset-state.mjs      五个开关的进程内镜像
+│   ├── agent-preset.mjs      开关服务端：把三个开关发布到进程内镜像
+│   ├── preset-state.mjs      三个开关的进程内镜像
 │   ├── client.js             插件管理页配置卡
 │   ├── zh-common.mjs         三份汉化层共用的替换机制
 │   ├── yayan-zh.mjs          雅言汉化层
 │   ├── cangjie-zh.mjs        仓颉汉化层
 │   ├── maliang-zh.mjs        马良汉化层
-│   ├── no-global-tools.mjs   Chat：移除继承工具
-│   ├── zero-injection.mjs    Chat：清空 tools/contexts 兜底
-│   ├── yinyu-stage.mjs       引玉的提示词与 SDK 重排
+│   ├── list-agents-shim.mjs  rc 与 α 的 list_agents 行垫片
 │   ├── self-test.mjs         离线契约测试
 │   └── audit-coverage.mjs    翻译覆盖率审计
 ├── locale/{zh,en}.json       插件管理页显示名与描述

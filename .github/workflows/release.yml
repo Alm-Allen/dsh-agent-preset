@@ -57,7 +57,7 @@ jobs:
 
           for f in plugins/*.mjs plugins/client.js; do node --check "$f"; echo "语法 OK：$f"; done
 
-      - name: 离线自测：默认值、预设组合、开关直通、引玉与客户端协议
+      - name: 离线自测：包结构、包清单、预设组合、开关直通与客户端协议
         run: node plugins/self-test.mjs
 
       - name: Take this version's notes out of CHANGELOG.md

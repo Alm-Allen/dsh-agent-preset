@@ -11,13 +11,11 @@ window.__ModuleLoader__.load({
       { key: "yayan", zh: ["雅言 · 标准模式", "把标准模式的系统提示词与工具说明切换为中文。关闭时保持原生英文标准模式。"], en: ["Yayan · Standard", "Switch Standard to Chinese prompts and tool descriptions. Off keeps the shipped English preset unchanged."], fallback: false },
       { key: "cangjie", zh: ["仓颉 · PTC 模式", "把 PTC 模式的系统提示词与 run_code 说明切换为中文。关闭时保持原生英文 PTC 模式。"], en: ["Cangjie · PTC", "Switch PTC to Chinese prompts and run_code documentation. Off keeps the shipped English preset unchanged."], fallback: false },
       { key: "maliang", zh: ["马良 · 创造模式", "把创造模式的系统提示词、工具与技能目录说明切换为中文。关闭时保持原生英文创造模式。"], en: ["Maliang · Creator", "Switch Creator prompts, tools and skill catalog text to Chinese. Off keeps the shipped English preset unchanged."], fallback: false },
-      { key: "chat", zh: ["Chat · 极简模式", "把极简模式换成零工具、零系统提示词的纯对话组合。关闭时保持原生英文极简模式。"], en: ["Chat · Minimal", "Replace Minimal with a zero-tool, zero-system-prompt conversation preset. Off keeps the shipped Minimal preset unchanged."], fallback: false },
-      { key: "yinyu", zh: ["引玉 · 独立预设", "保留极简系统提示词与 PTC run_code 环境的新增预设。关闭后该预设从可选列表中移除。"], en: ["Yinyu · standalone preset", "The extra preset with a minimal system prompt and the PTC run_code environment. Off removes it from the preset roster."], fallback: true },
     ]
 
     const COPY = {
       zh: {
-        summary: "雅言、仓颉、马良、Chat 与引玉的开关都在这里调。",
+        summary: "雅言、仓颉与马良的开关都在这里调。",
         overridden: "已覆盖",
         reset: "重置",
         failed: "保存未生效，请重试。",
@@ -25,7 +23,7 @@ window.__ModuleLoader__.load({
         readOnly: "当前设置不可修改。",
       },
       en: {
-        summary: "Switches for Yayan, Cangjie, Maliang, Chat and Yinyu are all here.",
+        summary: "Switches for Yayan, Cangjie and Maliang are all here.",
         overridden: "Overridden",
         reset: "Reset",
         failed: "The save did not take effect. Please try again.",

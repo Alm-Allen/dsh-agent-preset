@@ -1,5 +1,23 @@
 # Changelog
 
+## [2026.10.29] - 2026-10-29
+
+### Removed
+
+- 删除 Chat 模式（`preset-chat` 条目、`no-global-tools` 与 `zero-injection` 两个插件）与引玉模式（`preset-yinyu` 条目、`yinyu-stage` 插件）。
+- 插件只剩下雅言、仓颉、马良三个开关；`chat`、`yinyu` 两项从 Host 配置、进程内镜像与插件管理页一并移除。
+- 主插件不再需要 `loader` 注入：没有预设条目要启停，只负责把三个开关发布到进程内镜像。
+- 自测删掉 Chat 条目交换、零注入与引玉提示词相关断言，现共 74 项。
+
+### Changed
+
+- `cordis.patch.yml` 只保留主插件行与三个原生预设 override；`preset-chat`、`preset-yinyu` 及其说明一并删除。
+- `package.json` 的 `exports`、关键词与描述同步收窄到三个预设。
+
+### 升级提示
+
+旧的 profile 里可能留着 `preset-chat` 或 `preset-yinyu` 条目（插件管理页的条目开关会写进去），本版本已无这两个预设，升级后需自行移除。
+
 ## [2026.10.28] - 2026-10-28
 
 ### Fixed

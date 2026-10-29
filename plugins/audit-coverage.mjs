@@ -112,7 +112,7 @@ if (fs.existsSync(toolSkillPath)) {
 
 // 3. 用插件自己的翻译路径实测
 const { setPresetState } = await import('./preset-state.mjs')
-setPresetState({ yayan: PRESET === 'yayan', cangjie: PRESET === 'cangjie', maliang: PRESET === 'maliang', yinyu: true })
+setPresetState({ yayan: PRESET === 'yayan', cangjie: PRESET === 'cangjie', maliang: PRESET === 'maliang' })
 const mod = await import(PLUGIN.href)
 let assembleHandler
 let stepHandler

@@ -1,7 +1,7 @@
 {
   "name": "@alm-allen/dsh-agent-preset",
-  "version": "2026.10.25",
-  "description": "智能体预设：把雅言、仓颉、马良、Chat、引玉五个 DSH Agent 预设合并成一个插件；插件管理页分别启停，原生预设替代默认关闭、引玉默认开启。",
+  "version": "2026.10.29",
+  "description": "智能体预设：把雅言、仓颉、马良三个 DSH Agent 预设汉化层合并成一个插件；插件管理页分别启停，默认关闭时保持原生预设。",
   "type": "module",
   "license": "MIT",
   "main": "./plugins/agent-preset.mjs",
@@ -10,9 +10,6 @@
     "./yayan-zh": "./plugins/yayan-zh.mjs",
     "./cangjie-zh": "./plugins/cangjie-zh.mjs",
     "./maliang-zh": "./plugins/maliang-zh.mjs",
-    "./yinyu-stage": "./plugins/yinyu-stage.mjs",
-    "./no-global-tools": "./plugins/no-global-tools.mjs",
-    "./zero-injection": "./plugins/zero-injection.mjs",
     "./list-agents-shim": "./plugins/list-agents-shim.mjs",
     "./client": "./plugins/client.js",
     "./self-test": "./plugins/self-test.mjs",
@@ -52,9 +49,7 @@
     "agent-preset",
     "yayan",
     "cangjie",
-    "maliang",
-    "chat",
-    "yinyu"
+    "maliang"
   ],
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
