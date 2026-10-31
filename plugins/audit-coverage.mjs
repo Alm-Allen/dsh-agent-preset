@@ -25,6 +25,9 @@ const SKIP = /(\\|\/)(node_modules|dist|lib|build|\.git|\.probe|\.idea|\.npm-cac
 const IS_TEST = /(\\|\/)tests?(\\|\/)|\.spec\.ts$|\.test\.ts$/i
 const normalize = text => text.replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, ' ').trim()
 
+/** 就近锚点：文本离它够近，才当成模型能看到的提示词。 */
+const ANCHORS = [['defineTool(', 'tool'], ['systemPrompt.section(', 'section'], ['systemPrompt.context(', 'section']]
+
 // 1. 源码里的 section / 工具 / 参数文本
 const quoted = /'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"|`((?:[^`\\]|\\.)*)`/g
 const sourceItems = []
@@ -51,14 +54,25 @@ const scanSource = dir => {
 			// 只收**就近挂在锚点上的**文本：离最近的 `defineTool(` / `systemPrompt.section(` /
 			// `systemPrompt.context(` 超过 4000 字符就不认（config-schema 的字段文档、GUI 文案
 			// 都远离这些锚点，不属于模型看到的系统提示词）。
-			const anchors = [
-				[folded.lastIndexOf('defineTool(', hit.index), 'tool'],
-				[folded.lastIndexOf('systemPrompt.section(', hit.index), 'section'],
-				[folded.lastIndexOf('systemPrompt.context(', hit.index), 'section'],
-			].filter(([at]) => at >= 0 && hit.index - at <= 4000)
-			if (anchors.length === 0) continue
-			const kind = anchors.reduce((best, current) => (current[0] > best[0] ? current : best))[1]
-			sourceItems.push({ file: path.relative(ROOT, full), kind, text: normalize(plain) })
+			// 锚点可以在文本之后，也可以在文本之前：section 正文常写成文件顶部的常量，
+			// 注册调用在下面几十行处。只往前找会把这类段落整段漏掉。
+			let kind
+			let nearest = Number.POSITIVE_INFINITY
+			for (const [anchor, anchorKind] of ANCHORS) {
+				for (const at of [folded.lastIndexOf(anchor, hit.index), folded.indexOf(anchor, hit.index)]) {
+					if (at < 0) continue
+					const distance = Math.abs(hit.index - at)
+					if (distance <= 4000 && distance < nearest) { nearest = distance; kind = anchorKind }
+				}
+			}
+			if (kind === undefined) continue
+			const line = folded.slice(0, hit.index).split('\n').length
+			// 只有落在 description: 上的才算工具/参数提示词；render、throw、日志一类是运行时
+			// 返回值与错误消息，模型看到的形态由运行时拼装，不在本表的覆盖范围内。
+			const dotted = folded.lastIndexOf('description:', hit.index)
+			const inDescription = dotted >= 0 && hit.index - dotted <= 600
+			const role = kind === 'section' ? 'section' : (inDescription ? 'desc' : 'runtime')
+			sourceItems.push({ file: path.relative(ROOT, full), kind, role, text: normalize(plain), line })
 		}
 	}
 }
@@ -121,6 +135,11 @@ mod.apply({
 		if (event === 'system-prompt/assemble') assembleHandler = fn
 		if (event === 'agent/pre-step') stepHandler = fn
 	},
+	effect: fn => {
+		const dispose = fn()
+		return typeof dispose === 'function' ? dispose : () => {}
+	},
+	logger: { warn() {} },
 })
 if (assembleHandler === undefined || stepHandler === undefined) throw new Error('插件没有注册预期的监听器')
 
@@ -176,7 +195,7 @@ for (const item of skillItems) {
 console.log(`源码候选 ${sourceItems.length} 条、技能/目录 ${skillItems.length} 条｜未覆盖 ${uncoveredItemList.length} 条`)
 console.log('')
 for (const [index, item] of uncoveredItemList.entries()) {
-	console.log(`#${index} [${item.kind}] ${item.file}`)
+	console.log(`#${index} [${item.kind}/${item.role ?? 'section'}] ${item.file}${item.line === undefined ? '' : ':' + item.line}`)
 	console.log('   ' + item.text.slice(0, 170))
 }
 if (uncoveredItemList.length > 0) {

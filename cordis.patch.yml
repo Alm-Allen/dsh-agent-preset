@@ -25,6 +25,8 @@
           prefix: You are a coding agent powered by the {{model}} model.
       - id: yayan-zh
         name: '@alm-allen/dsh-agent-preset/yayan-zh'
+      - id: hide-harness-source
+        name: '@alm-allen/dsh-agent-preset/hide-harness-source'
       - id: agent-instructions
         name: '@deepseek-ai/dsh-agent-instructions'
         config:
@@ -154,6 +156,8 @@
           prefix: You are a coding agent powered by the {{model}} model.
       - id: cangjie-zh
         name: '@alm-allen/dsh-agent-preset/cangjie-zh'
+      - id: hide-harness-source
+        name: '@alm-allen/dsh-agent-preset/hide-harness-source'
       - id: agent-instructions
         name: '@deepseek-ai/dsh-agent-instructions'
         config:
@@ -292,6 +296,8 @@
             You are a coding agent powered by the {{model}} model.
       - id: maliang-zh
         name: '@alm-allen/dsh-agent-preset/maliang-zh'
+      - id: hide-harness-source
+        name: '@alm-allen/dsh-agent-preset/hide-harness-source'
       - id: agent-instructions
         name: '@deepseek-ai/dsh-agent-instructions'
         config:

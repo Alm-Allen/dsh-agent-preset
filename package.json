@@ -1,6 +1,6 @@
 {
   "name": "@alm-allen/dsh-agent-preset",
-  "version": "2026.10.29",
+  "version": "2026.10.31",
   "description": "智能体预设：把雅言、仓颉、马良三个 DSH Agent 预设汉化层合并成一个插件；插件管理页分别启停，默认关闭时保持原生预设。",
   "type": "module",
   "license": "MIT",
@@ -11,6 +11,7 @@
     "./cangjie-zh": "./plugins/cangjie-zh.mjs",
     "./maliang-zh": "./plugins/maliang-zh.mjs",
     "./list-agents-shim": "./plugins/list-agents-shim.mjs",
+    "./hide-harness-source": "./plugins/hide-harness-source.mjs",
     "./client": "./plugins/client.js",
     "./self-test": "./plugins/self-test.mjs",
     "./audit-coverage": "./plugins/audit-coverage.mjs",

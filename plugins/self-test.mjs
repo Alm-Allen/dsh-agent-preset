@@ -6,6 +6,7 @@ import { PRESET_DEFAULTS, getPresetState, setPresetState } from './preset-state.
 import { apply as applyYayan } from './yayan-zh.mjs'
 import { apply as applyCangjie } from './cangjie-zh.mjs'
 import { apply as applyMaliang } from './maliang-zh.mjs'
+import { apply as applyHideHarnessSource } from './hide-harness-source.mjs'
 
 const ROOT = new URL('../', import.meta.url)
 const read = path => fs.readFile(new URL(path, ROOT), 'utf8')
@@ -51,6 +52,28 @@ const BASE_ASSEMBLY = {
 	variables: {},
 }
 
+/**
+ * 带装配层的宿主：瀑布之后用 tool provider 的原始 schema 覆盖 tools。
+ *
+ * α 0.2.2 起 SystemPrompt.assemble 就是这么返回的（`{ ...transformed, tools }`），
+ * 瀑布里翻好的工具描述会被丢掉；rc 0.2.1 直接返回瀑布结果。两种行为都要过测试。
+ */
+function assemblingHarness(rawTools) {
+	const { ctx, handlers } = harness()
+	const service = {
+		async assemble() {
+			const collected = rawTools.map(tool => ({ ...tool }))
+			const assembly = { ...BASE_ASSEMBLY, tools: collected }
+			const waterfall = handlers.get('system-prompt/assemble')
+			const transformed = waterfall === undefined ? assembly : await waterfall(assembly, {}, async () => assembly)
+			// α 的行为：瀑布结果展开在前，组装期的 tools 写在后面覆盖
+			return { ...transformed, tools: collected }
+		},
+	}
+	ctx.systemPrompt = service
+	return { ctx, handlers, service }
+}
+
 // 包与组合
 const manifest = JSON.parse(await read('package.json'))
 ok(manifest.name === '@alm-allen/dsh-agent-preset', '包名固定为 @alm-allen/dsh-agent-preset')
@@ -78,6 +101,9 @@ ok(standard.includes('@alm-allen/dsh-agent-preset/yayan-zh'), '雅言挂载包�
 ok(!standard.includes('prefix: ""'), '雅言不再把 persona 静态置空')
 ok(ptc.includes('@alm-allen/dsh-agent-preset/cangjie-zh'), '仓颉挂载包内汉化层')
 ok(cordis.includes('@alm-allen/dsh-agent-preset/maliang-zh'), '马良挂载包内汉化层')
+for (const [label, section] of [['雅言', standard], ['仓颉', ptc], ['马良', cordis]]) {
+	equal((section.match(/name: '@alm-allen\/dsh-agent-preset\/hide-harness-source'/g) ?? []).length, 1, label + '挂载检出目录遮蔽行')
+}
 
 // rc 与 α 的行差异：list_agents 走垫片，tool-subagent 共存两套模型选择键
 const shimSource = await read('plugins/list-agents-shim.mjs')
@@ -155,6 +181,43 @@ for (const [key, apply, batchName] of [
 	}))
 	const wrappedSection = wrapped.sections.find(section => section.name === 'tools:sdk')
 	ok(wrappedSection?.text.includes('已提交的答案批'), '渲染侧把描述折叠成单行后仍能命中带换行的键')
+}
+
+// 工具描述必须穿过装配层：α 会用 tool provider 的原始 schema 覆盖瀑布里的 tools
+// 只有雅言与马良走原生 schema；仓颉的工具描述在 tools:sdk 段里，本来就过瀑布
+{
+	const READ_TOOL_EN = 'Read a UTF-8 text file and return line-numbered content.'
+	const readTool = () => [{ name: 'read', description: READ_TOOL_EN, parameters: { type: 'object', properties: {} } }]
+	for (const [key, apply] of [['yayan', applyYayan], ['maliang', applyMaliang]]) {
+		setPresetState({ yayan: false, cangjie: false, maliang: false, [key]: true })
+		const { ctx, service } = assemblingHarness(readTool())
+		apply(ctx)
+		const assembled = await service.assemble()
+		ok(/[\u4e00-\u9fff]/.test(assembled.tools[0].description), key + ' 的工具描述穿过装配层仍然汉化')
+		ok(assembled.tools[0].parameters.type === 'object', key + ' 只改文本，工具结构原样')
+	}
+	setPresetState({ yayan: true, cangjie: false, maliang: false })
+	const { ctx, service } = assemblingHarness(readTool())
+	applyYayan(ctx)
+	setPresetState({ yayan: false, cangjie: false, maliang: false })
+	const closed = await service.assemble()
+	ok(closed.tools[0].description === READ_TOOL_EN, '开关关闭时装配层返回原样工具描述')
+}
+
+// 只遮蔽检出目录那一条：其余运行时上下文照常注入
+{
+	const { ctx } = harness()
+	const registered = []
+	ctx.systemPrompt = {
+		getContextOrder: () => 200,
+		context: entry => { registered.push(entry) },
+	}
+	applyHideHarnessSource(ctx)
+	equal(registered.map(entry => entry.name), ['harness:source'], '只注册一条遮蔽条目')
+	const shadow = registered[0]
+	ok(shadow.required === true && shadow.text === '' && shadow.interpolate === false && shadow.order === 200, '遮蔽条目为空文本、required、沿用宿主排序')
+	const source = await read('plugins/hide-harness-source.mjs')
+	ok(!source.includes("'agent/pre-step'") && !source.includes('system-prompt/assemble'), '不改组装结果，也不碰消息注入')
 }
 
 // 系统提示词恒定性：工作目录与提示词变量不能渗进 sections

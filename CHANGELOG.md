@@ -1,5 +1,23 @@
 # Changelog
 
+## [2026.10.31] - 2026-10-31
+
+### Fixed
+
+- **工具描述与参数说明在 α 版上没被汉化**。α 0.2.2 起 `SystemPrompt.assemble` 会在瀑布之后用 tool provider 的原始 schema 覆盖 `tools`（`return { ...transformed, tools }`），瀑布里翻好的结果被原地丢掉；rc 0.2.1 是 `return transformed`，所以只有桌面版受影响。现在包装了 `ctx.systemPrompt.assemble`，对两版都生效，关闭开关时原样返回。
+- 补 `subagent` 的 `provider` / `model` / `reasoning_effort` 与 `list_subagent_models` 的两个参数：α 把它们改成了短句，旧长句仍在表里。
+
+### Added
+
+- 三个预设各挂一行 `hide-harness-source`：遮蔽运行时上下文里的检出目录一条。桌面版那个路径指向打包后的 `resources/app.asar/dsh`，模型照着去找必然落空，还会被引离开当前项目。
+- 只遮蔽 `harness:source` 这一条 context，工作目录、文件策略、审批状态与 GUI URL 照常注入；快照本身、GUI 段正文与两段系统提示词段落都不动。
+- 自测加了「带装配层的宿主」：模拟 α 在瀑布后用原始 schema 覆盖 `tools`，断言工具描述仍然汉化、关闭时原样、结构不动。现共 86 项。
+
+### Changed
+
+- 机制说明补进 `文档/机制/运行时上下文.md`：为什么必须在 provider 层遮蔽、为什么条目要写 `required: true`。
+- 机制说明补进 `文档/机制/翻译层.md`：为什么要包一层 `assemble`、装配层的覆盖顺序、工具词条为什么按句子片段收。
+
 ## [2026.10.29] - 2026-10-29
 
 ### Removed

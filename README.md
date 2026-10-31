@@ -70,7 +70,7 @@ npm install
 node plugins/self-test.mjs
 ```
 
-自测覆盖包清单、三个预设组合、开关默认值、汉化层关闭直通与开启替换，以及浏览器客户端注册协议。
+自测覆盖包清单、三个预设组合、开关默认值、汉化层关闭直通与开启替换、检出目录遮蔽，以及浏览器客户端注册协议。
 
 机制说明与踩坑记录在 `文档/`（本目录不进 git 追踪）；代码注释只留结论并指回对应那篇。
 
@@ -96,6 +96,7 @@ dsh-agent-preset/
 │   ├── cangjie-zh.mjs        仓颉汉化层
 │   ├── maliang-zh.mjs        马良汉化层
 │   ├── list-agents-shim.mjs  rc 与 α 的 list_agents 行垫片
+│   ├── hide-harness-source.mjs  遮蔽运行时上下文里的检出目录一条
 │   ├── self-test.mjs         离线契约测试
 │   └── audit-coverage.mjs    翻译覆盖率审计
 ├── locale/{zh,en}.json       插件管理页显示名与描述

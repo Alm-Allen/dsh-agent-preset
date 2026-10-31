@@ -217,6 +217,10 @@ ${EXECUTION_POLICY_ZH}
 	],
 
 	[
+		"Read an existing file before overwriting it with write (the default fs-observation-policy requires it).",
+		"用 write 覆盖已有文件之前先读取它（默认的 fs-observation-policy 要求如此）。",
+	],
+	[
 		"Read an existing file before overwriting it with write (the default fs-observation-policy requires it) and prefer edit for targeted changes.",
 		"用 write 工具创建文件或整体重写文件内容——这是**硬性要求**：只要是要把新的文件内容写到磁盘，就必须用 write 工具，不许用 shell 的重定向与 heredoc（`cat > file <<EOF`、`tee`、`printf >`）、`sed -i`、`python -c` 之类方式绕道写文件内容。用 write 覆盖已有文件之前先读取它（默认的 fs-observation-policy 要求如此），定点改动优先用 edit。",
 	],
@@ -259,6 +263,10 @@ ${EXECUTION_POLICY_ZH}
 	[
 		"Prefer showing the primary results within your final response alongside a brief explanation. Use ![Description](<path/to/image.png>) when an image supports an explanation or comparison. Use [Description](<path/to/image.png>) when referring to an image or listing files. Enclose Markdown file destinations in angle brackets, especially paths containing spaces. Do not call present just to list edited source files, or run commands to check whether a diff view will appear. Use present when a separate file card helps the user open the complete deliverable, including images, Office documents, spreadsheets, and slide decks. Each presented file adds a card below the reply, with preview and native-open actions. Avoid repeating results already shown inline unless the separate card adds useful access. Outside commands, configuration expressions, and code blocks, link every mention of an existing file, including repeats and tables, to its full path relative to the working directory or absolute; append #L24 or #L24-L30 to the target for known lines. Use the filename or a clear alias as the label, adding only enough parent directories to distinguish files; keep full paths out of labels. Default to the name alone; when precise locations matter, append :24 or :24–30, with no # or L in the line suffix.",
 		"优先在最终答复里直接展示主要结果，并配一句简短说明。当一张图有助于解释或对比时，用 ![Description](<path/to/image.png>) 嵌入它；要指向某张图片或列出文件时，用 [Description](<path/to/image.png>)。Markdown 文件目标请用尖括号包裹，路径含空格时尤其如此。不要仅仅为了列出改动过的源文件而调用 present，也不要为了确认会不会出现 diff 视图而跑命令。当一个独立的文件卡片能帮用户打开完整交付物时（包括图片、Office 文档、电子表格和幻灯片），才用 present。每个被呈现的文件都会在回复下方加一张卡片，带预览与原生打开操作。避免重复已经内联展示过的结果，除非那张独立卡片能提供有用的访问入口。除命令、配置表达式与代码块之外，每一处提到已存在文件的地方——包括重复提及和表格里的——都要链接到它相对于工作目录的完整路径或绝对路径；已知行号时在目标后追加 #L24 或 #L24-L30。标签用文件名或清晰的别名，只补充足够区分的父目录；标签里不要放完整路径。默认只用文件名；需要精确位置时追加 :24 或 :24–30，行号后缀不带 # 或 L。",
+	],
+	[
+		"Prefer showing the primary results within your final response alongside a brief explanation. Use ![Description](<path/to/image.png>) when an image supports an explanation or comparison. Use [Description](<path/to/image.png>) when referring to an image or listing files. Enclose Markdown file destinations in angle brackets, especially paths containing spaces. Do not call present just to list edited source files, or run commands to check whether a diff view will appear. Use present to publish complete deliverables, including images, Office documents, spreadsheets, and slide decks, when separate access helps the user. Hosts that support file cards can show the presented file with preview and open actions. Avoid repeating results already shown inline unless the separate card adds useful access. Outside commands, configuration expressions, and code blocks, link every mention of an existing file, including repeats and tables, to its full path relative to the working directory or absolute; append #L24 or #L24-L30 to the target for known lines. Use the filename or a clear alias as the label, adding only enough parent directories to distinguish files; keep full paths out of labels. Default to the name alone; when precise locations matter, append :24 or :24–30, with no # or L in the line suffix.",
+		"优先在最终答复里直接展示主要结果，并配一句简短说明。当一张图有助于解释或对比时，用 ![Description](<path/to/image.png>) 嵌入它；要指向某张图片或列出文件时，用 [Description](<path/to/image.png>)。Markdown 文件目标请用尖括号包裹，路径含空格时尤其如此。不要仅仅为了列出改动过的源文件而调用 present，也不要为了确认会不会出现 diff 视图而跑命令。当一个独立的访问入口能帮到用户时，用 present 发布完整交付物，包括图片、Office 文档、电子表格和幻灯片。支持文件卡片的宿主会把被呈现的文件连预览与打开操作一起展示出来。除非那张独立卡片能提供有用的访问入口，否则不要重复已经内联展示过的结果。在命令、配置表达式与代码块之外，把每一处对已存在文件的提及——包括重复出现和表格里的——都链接到它相对于工作目录的完整路径或绝对路径；已知行号时在目标后追加 #L24 或 #L24-L30。用文件名或清晰的别名作为标签，只保留足以区分不同文件的父目录；标签里不要写完整路径。默认只用文件名；需要精确位置时追加 :24 或 :24–30，行号后缀里不带 # 或 L。",
 	],
 	[
 		"A skill is a reusable set of task-specific instructions. The following skills are available in this session:",
@@ -463,6 +471,10 @@ send_message 的目标用 spawn_teammate 或 list_agents 返回的 target；分�
 		"LLM provider route for the child. Supply together with model; omit both to use configured child defaults or this provider's route defaults.",
 		"子代理使用的 LLM provider 路线。与 model 成对提供；两者都省略时，使用配置好的子代理默认值或该 provider 的路由默认值。",
 	],
+	// α 0.2.2 把这三条改写成短句，旧长句保留在上面
+	["Child LLM provider id.", "子 agent 的 LLM provider id。"],
+	["Model id within that provider.", "该 provider 里的模型 id。"],
+	["Model-specific reasoning effort id.", "该模型专属的推理档位 id。"],
 	[
 		"Model id interpreted by provider. Supply together with provider; omit both to use configured child defaults or this provider's route defaults.",
 		"由 provider 解释的模型 id。与 provider 成对提供；两者都省略时，使用配置好的子代理默认值或该 provider 的路由默认值。",
@@ -689,6 +701,18 @@ send_message 的目标用 spawn_teammate 或 list_agents 返回的 target；分�
 	["Schedule id returned by schedule_list.", "由 schedule_list 返回的 schedule id。"],
 	["New task name; follow the schedule_create title rules.", "新任务名；遵循 schedule_create 的标题规则。"],
 	["New reminder content.", "新的提醒内容。"],
+	["True when the foreground wait expired before the user submitted an answer batch. The questions remain answerable; this is not a skipped answer.", "前台等待在用户提交答案批之前就到期时为 true。这些问题仍然可以回答；这不是被跳过。"],
+	["Tool call whose unanswered questions remain pending.", "其未答复的问题仍处于待答状态的工具调用。"],
+	["How to continue while the questions stay answerable.", "在问题仍可回答期间该怎么继续。"],
+	["Submitted answer batch with one item per question. A skipped question has empty selected and no custom; unlike pending, the user has completed the batch.", "已提交的答案批，每个问题一条。被跳过的问题 selected 为空且没有 custom；与 pending 不同，用户已经完成了这一批。"],
+	["Stable question id echoed from the request.", "从请求回显过来的稳定问题 id。"],
+	["Selected option labels. Empty with no custom means the user explicitly skipped this question.", "选中的选项标签。为空且没有 custom 表示用户明确跳过了本问题。"],
+	["Ask the user a concise question when you need confirmation, a choice, or missing information before proceeding. An answer item with empty selected and no custom means the user skipped that question: continue without it, do not ask it again, and do not treat the skip as permission.", "当你需要确认、需要用户做选择，或缺少信息才能继续时，向用户提一个简明的问题。某个答案项的 selected 为空且没有 custom，表示用户跳过了该问题：不带这项继续，不要重复再问，也不要把这次跳过当作许可。"],
+	["Create a new Git branch and worktree from a local commit, branch, or tag, then change this session's working directory to it. Uncommitted files stay in the source checkout. Existing names fail. Use working_directory with cd to leave; the checkout and branch remain.", "从本地提交、分支或标签创建一个新的 Git 分支与 worktree，然后把本会话的工作目录切换过去。未提交的文件留在源检出里。已存在的名字会失败。要离开请用带 `cd` 的 `working_directory`；该检出与分支都会保留。"],
+	["Declare existing files as final deliverables for the user. Hosts may show presented files only after your turn ends, so call it once the files are final. If the user needs to review files earlier, such as before a tool call that waits for their answer, link them in your message instead. Use it when the user needs a separate file, especially Office documents, spreadsheets, and slide decks; prefer your final response when that suffices. The user opens the current files; their contents are not copied.", "把已存在的文件声明为用户的最终交付物。宿主可能只在你的回合结束后才展示被呈现的文件，所以在文件定稿后再调用它。如果用户需要更早查看（例如在一次等待用户回答的工具调用之前），请改为在消息里给出链接。当用户需要一份单独的文件时使用它，Office 文档、电子表格与幻灯片尤其如此；最终答复本身就够时优先用最终答复。用户打开的是当前文件，其内容不会被复制。"],
+	["Inspect subagent models without changing the current Agent. No arguments: providers; `provider`: allowed models; `provider` + `model`: that model and its reasoning efforts. Inspect options here before selecting a child provider and model; use returned ids for delegation.", "查看 subagent 可用的模型，不改动当前 Agent。不带参数：列出 provider；只给 `provider`：该 provider 允许的模型；`provider` + `model`：该模型及其推理档位。为子 agent 选 provider 与模型之前先在这里查看，委派时用返回的 id。"],
+	["Plan approved — plan mode exited; carry out the plan starting with your next step.", "计划已批准——已退出 plan mode；从下一步开始执行这份计划。"],
+	["The user dismissed the plan review to reply in their own words; plan mode remains active.", "用户关闭了计划评审，想用自己的话回复；plan mode 仍然生效。"],
 ]);
 
 /**
@@ -706,8 +730,15 @@ const BATCH_PTC = `run_code 不只是批量调用，它可以是微型工作流�
 - 只把结论写进输出：中间结果留在程序里，长输出会被截断；子调用失败用 try/catch 接住，带着已完成的部分返回
 - 等待 DSH 的后台任务用 job_output 的 wait，不要 sleep 轮询；只有等外部服务才轮询，并压在 timeoutMs 预算内`;
 
+
 /** 正则映射：文本含动态内容时使用（路径、URL、数字）。 */
 const PATTERNS = [
+	[/Clear, concise description of what this command does in active voice, 5-10 words \(shown in the UI\)\. Examples: "ls" → "List files in current directory"; "git status" → "Show working tree status"; "npm install" → "Install package dependencies"\./,
+		() => '用主动语态清楚、简洁地描述这条命令做什么，5–10 个词（显示在 UI 中）。示例："ls" → "List files in current directory"；"git status" → "Show working tree status"；"npm install" → "Install package dependencies"。'],
+	[/Wait seconds for the entire batch \(default (\d+)\); omit unless the user specifies a duration\. Use -1 only when an answer is required before proceeding\./,
+		(_m, d) => `等待整批答案的秒数（默认 ${d}）；除非用户指定了时长，否则省略。只有在必须拿到答案才能继续时才用 -1。`],
+	[/Fixed-rate interval in whole seconds, at least (\d+), aligned to the creation time; changing it with schedule_update re-aligns it to the save time\./,
+		(_m, n) => `以整秒为单位的固定间隔，至少 ${n}，与创建时间对齐；用 schedule_update 修改它会对齐到保存时间。`],
 	[
 		/^The DeepSeek Harness implementation checkout is at (.+?)\. The checkout location and current working directory are separate values and may differ; never infer the working directory from this path\. Use pwd to determine the current working directory\. Use this checkout only to inspect or extend DSH itself\.$/,
 		(_m, root) =>
@@ -773,9 +804,9 @@ const PATTERNS = [
 			`正数的耗时预算（毫秒），包含嵌套工具调用与审批等待。默认 ${fallback}；上限 ${cap}。设为零不会取消这个期限。`,
 	],
 	[
-		/Start independent delegations with (.+?) together in one assistant message and continue useful work while they run\./,
+		/Start independent delegations with (.+?) together in one assistant message and continue useful work while they run\. When only waiting for their results remains, end your turn instead of sleeping or polling; the next result starts a new turn\./,
 		(_m, names) =>
-			`同时发起相互独立的委派（${names.replace(" or ", " 或 ")}），放在同一条 assistant 消息里，并在它们运行时继续做有用的工作。`,
+			`同时发起相互独立的委派（${names.replace(" or ", " 或 ")}），放在同一条 assistant 消息里，并在它们运行时继续做有用的工作。当只剩等待它们的结果这件事时，结束你的回合，不要 sleep 或轮询；下一个结果会开启新的回合。`,
 	],
 	[
 		/create_goal may infer goal intent from a direct human request in any language\. After session resume or fork, an active goal is disarmed: when a human asks to continue or resume in any wording or language, use update_goal action resume to rearm it\. Mark complete only when the objective is actually achieved\. Mark blocked only after the same blocking condition persists for at least (\d+) consecutive goal rounds, and report that concrete condition in blocked_reason; difficulty, uncertainty, or useful remaining work is not blocked\./,
@@ -839,6 +870,8 @@ const DOCS = new Map([
  * 
  * 问题应聚焦会影响方案、结果或验收的阻塞点；一次问全，并给出推荐选项。`,
 	],
+	["Stable id for this question; echoed in the answer.", "本问题的稳定 id；会回显在回答中。"],
+	["The specific question to ask the user.", "要问用户的具体问题。"],
 	["Questions to ask the user before continuing.", "继续之前要问用户的问题。"],
 	["Stable id for this question; echoed in the answer.", "本问题的稳定 id；会回显在回答中。"],
 	["The specific question to ask the user.", "要问用户的具体问题。"],
@@ -942,6 +975,10 @@ const DOCS = new Map([
 		"执行一条 PowerShell 命令（`pwsh -Command`）并返回其 stdout/stderr。每次调用都在一个全新的 pwsh 进程中运行：调用之间不保留任何状态（cwd、变量、函数）——用 `workdir` 参数而不是 `cd`。路径使用原生 Windows 形式（`C:\\...`）；用 `$env:NAME` 读取环境变量。非零退出会以 `[exit code: N]` 报告。当前 harness 的环境事实通过受管的 `$env:DSH_*` 变量暴露；需要时查看它们。命令可能运行在文件沙箱之下；被阻止的文件操作会报告为 `[sandbox: file access denied under <mode> mode]`——这是策略拒绝，不是命令本身的 bug；不要换一种方式重试。过长的输出会被截断到尾部；完整输出会保存到文件，并在可用时报告其路径。在 Windows 上，被强杀的命定会以 `[exit code: 1]` 结算且没有信号标记——把它视为中断，而不是命令失败。长时间运行的命令请设 `run_in_background: true`：调用会立即返回一个 job id；用 `job_output` 读取其输出，用 `job_kill` 停止它。在 Windows 沙箱下，只读模式的 pwsh 运行在 PowerShell ConstrainedLanguage 模式，而 workspace-write 除非宿主策略另有规定，否则保持 FullLanguage。在只读模式下，优先使用 cmdlet 与核心类型（`[string]`、`[datetime]`、`[regex]`、`[guid]`）；.NET 静态调用（`[System.IO.*]::`、`[math]::`）、`Add-Type`、COM 对象和反射会以 \"only core types\" 错误失败。`-f` 格式化、属性访问和核心 cmdlet 可用。在两种受限模式下，程序都无法打开命名管道，所以通过管道 stdio 捕获另一个程序输出的命令（Node.js `child_process.spawn`/`exec` 使用默认的 `stdio: 'pipe'`）会以 EPERM 失败，而 `stdio: 'inherit'` 与 `stdio: 'ignore'` 的启动可以工作，PowerShell 自身的管道也不受影响。该 EPERM 是已文档化的边界：不要换一种方式重试该命令——把同一条命令升级一次，或重构它以避免捕获输出。尝试一条沙箱可能拒绝的命令是安全且符合预期的：运行它并读取标记，而不是先假定被拒绝。当命令被拒绝、而更宽的模式能让它成功时，在同一轮里立即升级——这是被拒绝时唯一被允许的例外：用 `sandbox_permissions`（足够的最窄更宽模式）加上一句 `justification`，把完全相同的命令重试一次。不要先绕道聊天去征求许可——那次重试弹出的审批提示就是用户表达同意的方式。如果会话声明审批提示已禁用，就没有例外：拒绝是最终结果——不要设置 `sandbox_permissions`。永远不要投机性升级：把请求建立在一个真实的拒绝之上——通常是这条命令刚刚遇到的；只有当本会话已经拒绝过同一访问时，才可以直接提前升级。被拒绝的升级对该命令是最终结果——停下来并解释，绝不要绕过它——但这并不禁止之后尝试或升级其他命令。",
 	],
 	["The PowerShell command to execute.", "要执行的 PowerShell 命令。"],
+	[
+		"Clear, concise description of what this command does in active voice, 5-10 words (shown in the UI). Examples: \"ls\" → \"List files in current directory\"; \"git status\" → \"Show working tree status\"; \"npm install\" → \"Install package dependencies\".",
+		'用主动语态清楚、简洁地描述这条命令做什么，5–10 个词（显示在 UI 中）。示例："ls" → "List files in current directory"；"git status" → "Show working tree status"；"npm install" → "Install package dependencies"。',
+	],
 	[
 		'Clear, concise description of what this command does in active voice, 5-10 words (shown in the UI). Examples: "ls" → "List files in current directory"; "git status" → "Show working tree status"; "Get-Process" → "List running processes".',
 		'用主动语态清楚、简洁地描述这条命令做什么，5–10 个词（显示在 UI 中）。示例："ls" → "List files in current directory"；"git status" → "Show working tree status"；"Get-Process" → "List running processes"。',
@@ -1782,10 +1819,46 @@ const DOCS = new Map([
 		"要写入的路径，由文件系统后端解析。在参数里，`file_path` 要写在 `content` 之前。",
 	],
 	// 0.2.1-alpha.2：Git worktree（`dsh-experimental-tool-worktree`，3 条）
+	[
+		"The plain JavaScript body, not TypeScript and without an `export const meta` statement; top-level await is allowed. End with `return <value>`; the JSON-serializable value is this tool's result.",
+		"纯 JavaScript 函数体，不是 TypeScript，也不要写 `export const meta` 语句；允许顶层 await。以 `return <value>` 结尾；这个可 JSON 序列化的值就是本工具的结果。",
+	],
+	[
+		"Optional JSON input exposed to the script as the `args` global (wrap a bare list as a field, e.g. {\"files\": [...]}).",
+		"可选的 JSON 输入，会作为全局变量 `args` 暴露给脚本（裸列表请包成一个字段，例如 {\"files\": [...]}）。",
+	],
+	[
+		"Run as a background job: return a job id immediately instead of waiting; the return value arrives with the completion notice.",
+		"作为后台任务运行：立即返回 job id 而不是等待；返回值会随完成通知一起送来。",
+	],
+	[
+		"List every Cordis Inspect Provider currently known to the Host, including local Host Providers and the latest manifests synchronized from the Client. Each entry includes its platform, purpose, read-only methods, and input/output schemas. Call this Tool before writing or configuring a plugin, then select the provider and method for cordis_inspect_query from its result. Do not guess names or treat an Inspect method as a business Service that Plugin code can call.",
+		"列出宿主当前已知的每一个 Cordis Inspect Provider，包括本地 Host Provider，以及从 Client 同步来的最新清单。每一项都带它的平台、用途、只读方法与输入、输出 schema。写插件或配置插件之前先调用本工具，再从结果里为 cordis_inspect_query 选定 provider 与 method。不要猜名字，也不要把 Inspect 方法当成插件代码可以调用的业务 Service。",
+	],
+	[
+		"Run a read-only query declared by an Inspect Provider. platform, provider, and method must come from cordis_inspect_list, and input must satisfy that method's schema. Use this Tool before writing plugin code to read exact Service methods, Event modes, plugin Config schemas, Tool schemas, theme tokens, or live Slot trees and props. Host queries run locally. A Client query waits for the first valid page response within the configured timeout; otherwise it reports a Client failure or asks you to reconnect and retry. This Tool cannot invoke business Service methods or modify the runtime.",
+		"执行一个由 Inspect Provider 声明的只读查询。platform、provider 与 method 都必须取自 cordis_inspect_list，input 必须满足该方法的 schema。写插件代码之前先用本工具读取确切的 Service 方法、Event 模式、插件 Config schema、Tool schema、主题 token，或实时的 Slot 树与 props。Host 查询在本机运行。Client 查询会在配置的超时内等待第一个有效页面响应；否则它会报告 Client 失败，或要你重连后重试。本工具不能调用业务 Service 方法，也不能修改运行时。",
+	],
+	[
+		"Required for set operations; defaults to true for installation. For set_version_exemption, true grants and false revokes.",
+		"set 类操作必填；安装时默认为 true。对 set_version_exemption，true 表示授予、false 表示撤销。",
+	],
 	// 工具名与参数名保持原样；`HEAD`、`cd`、`working_directory` 是标识符。
 	[
 		"Create a new Git branch and worktree from a local commit, branch, or tag, then change this session's working directory to it. Defaults to HEAD and a generated name. Uncommitted files stay in the source checkout. Existing names fail. Use working_directory with cd to leave; the checkout and branch remain.",
 		"从本地提交、分支或标签创建一个新的 Git 分支与 worktree，然后把本会话的工作目录切换过去。默认使用 `HEAD` 与自动生成的名字。未提交的文件留在源检出里。已存在的名字会失败。要离开请用带 `cd` 的 `working_directory`；该检出与分支都会保留。",
+	],
+	[
+		"Ask the user a concise question when you need confirmation, a choice, or missing information before proceeding. An answer item with empty selected and no custom means the user skipped that question: continue without it, do not ask it again, and do not treat the skip as permission.",
+		"当你需要确认、需要用户做选择，或缺少信息才能继续时，向用户提一个简明的问题。某个答案项的 selected 为空且没有 custom，表示用户跳过了该问题：不带这项继续，不要重复再问，也不要把这次跳过当作许可。",
+	],
+	[
+		"Create a new Git branch and worktree from a local commit, branch, or tag, then change this session's working directory to it. Uncommitted files stay in the source checkout. Existing names fail. Use working_directory with cd to leave; the checkout and branch remain.",
+		"从本地提交、分支或标签创建一个新的 Git 分支与 worktree，然后把本会话的工作目录切换过去。未提交的文件留在源检出里。已存在的名字会失败。要离开请用带 `cd` 的 `working_directory`；该检出与分支都会保留。",
+	],
+	[
+		"New branch name, also used as the checkout directory: a few lowercase words joined by hyphens that describe the task, such as fix-login-retry. Omit to generate a unique name.",
+		"新分支名，同时用作检出目录：几个小写单词用连字符连接，描述任务，例如 fix-login-retry。省略则生成一个唯一名字。",
 	],
 	[
 		"New branch name, also used as the checkout directory. Omit to generate a unique name.",

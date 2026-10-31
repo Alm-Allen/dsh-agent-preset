@@ -23,6 +23,67 @@ const CWD_LINE = /^[^\S\n]*你的工作目录是 \{\{cwd\}\}。[^\S\n]*$/gm
 /** 单行 JSDoc 注释：tools:sdk 的生成格式固定 */
 const DOC_RE = /\/\*\* ([\s\S]*?) \*\//g
 
+/** 已包装的 assemble 实例 → 包装状态。同一服务只包一次，三层按需增删 */
+const ASSEMBLE_PATCHES = new WeakMap()
+
+/** 逐层叠加工具翻译；全部层都返回原对象时保持原数组引用 */
+function translateToolList(tools, layers) {
+	let changed = false
+	let next = tools
+	for (const layer of layers) {
+		next = next.map(tool => {
+			const translated = layer(tool)
+			if (translated !== tool) changed = true
+			return translated
+		})
+	}
+	return changed ? next : tools
+}
+
+/**
+ * 让工具翻译穿过装配层。
+ *
+ * 装配层（SystemPrompt.assemble）在瀑布之后用 tool provider 的原始 schema 覆盖
+ * tools 字段，瀑布里翻好的工具描述会被丢掉。rc 0.2.1 没有这层覆盖，α 0.2.2 起有；
+ * 包一层对两版都成立，已经翻过的文本再翻一次不变。
+ * 详见 文档/机制/翻译层.md 的「为什么要包一层 assemble」。
+ */
+function installAssemblePatch(service, translate) {
+	const original = service?.assemble
+	if (typeof original !== 'function') return () => {}
+	let patch = ASSEMBLE_PATCHES.get(service)
+	if (patch === undefined) {
+		const layers = new Set()
+		const patched = async function (...args) {
+			const assembly = await original.apply(this, args)
+			if (assembly === null || typeof assembly !== 'object' || !Array.isArray(assembly.tools)) return assembly
+			const tools = translateToolList(assembly.tools, layers)
+			return tools === assembly.tools ? assembly : { ...assembly, tools }
+		}
+		// 原方法常在原型上：还原时删掉自有属性，而不是留一个同值副本
+		const owned = Object.hasOwn(service, 'assemble')
+		const dispose = () => {
+			if (service.assemble !== patched) return
+			if (owned) service.assemble = original
+			else delete service.assemble
+			ASSEMBLE_PATCHES.delete(service)
+		}
+		try {
+			service.assemble = patched
+		} catch {
+			// 服务实例冻结时无能为力：退回只有 sections 生效
+			return () => {}
+		}
+		patch = { layers, dispose }
+		ASSEMBLE_PATCHES.set(service, patch)
+	}
+	patch.layers.add(translate)
+	return () => {
+		patch.layers.delete(translate)
+		if (patch.layers.size === 0) patch.dispose()
+	}
+}
+
 /** 翻译工作区指令预算的明细片段（truncated <路径> from A to B bytes 或 omitted <路径>） */
 export function translateBudgetDetail(detail) {
 	if (typeof detail !== 'string' || detail.length === 0) return detail
@@ -204,6 +265,11 @@ export function createZhLayer({ presetKey, prose, patterns, docs, planMode, batc
 	}
 
 	return function apply(ctx) {
+		// 装配层会用 tool provider 的原始 schema 覆盖 tools，瀑布里的工具翻译必须在这里补一次。
+		// 开关检查留在包装内部：关闭时原样返回，与原生逐字节一致
+		const translateToolWhenEnabled = tool => isPresetEnabled(presetKey) ? translateTool(tool) : tool
+		ctx.effect(() => installAssemblePatch(ctx.systemPrompt, translateToolWhenEnabled), `${presetKey}-zh: patch assemble tools`)
+
 		ctx.on('system-prompt/assemble', async (_assembly, _context, next) => {
 			if (!isPresetEnabled(presetKey)) return next()
 			const assembled = await next()
