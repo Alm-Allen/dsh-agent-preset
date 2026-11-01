@@ -25,6 +25,10 @@ const EXECUTION_POLICY_ZH = `可逆且属于当前请求的工作（读取文件
 
 专注高效、高质量地完成任务，不考虑成本。
 
+如果你打算开启子代理/队友，那么分配好工作后静静等待用户或者子代理/队友的反馈即可。
+
+如果你本身已经是子代理/队友了，那么最好不要再唤起子代理/队友，你的工作内容有点重值得让主代理再多分配几个一起干，就和主代理申请即可。
+
 开发中功能尚不完善、需要真实环境或人眼验证、或者确实缺少资料、工具、运行条件时，直接请用户帮忙测试、反馈或提供支持。
 
 写入或者编辑文件时，必须使用write和edit工具。`
@@ -337,7 +341,7 @@ ${EXECUTION_POLICY_ZH}
 
 	// Agent Teams 协作纪律（tool-agent-team 的 `team:policy` 段）
 	// 精确段落映射：这段文本由 `scoped.systemPrompt.section({ name: 'team:policy' })`
-	// 直接写入，只出现在未排除 Team 的预设里（本机 chat 已被 excludePresets 排除）。
+	// 直接写入，只出现在装了 agent-team profile 的会话里。
 
 	[
 		`Agent Teams is available in this session
@@ -1722,8 +1726,8 @@ const DOCS = new Map([
 	["Update the current goal.", "更新当前目标。"],
 
 	// Agent Teams（tool-agent-team，9 个工具）
-	// 由 `dsh-experimental-agent-team-profile` 插入；只在未被 `excludePresets` 排除的
-	// 预设（本机是 cangjie / standard，排除 chat）里注册。工具名与参数名保持原样。
+	// 由 `dsh-experimental-agent-team-profile` 插入，装了它的会话里都有。
+	// 工具名与参数名保持原样。
 
 	[
 		"Create one named, durable teammate. Only the Team Lead may call this tool.",

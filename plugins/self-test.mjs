@@ -245,6 +245,65 @@ for (const [key, apply, batchName] of [
 	}
 }
 
+// contexts 每步按注册表重建：翻译必须穿过 refreshContext，否则身份段变回英文
+{
+	const TEAM_IDENTITY_EN = 'You are the Team Lead named "lead".\nUse list_agents({}) to find your teammates and their names.\nTo message another teammate, use send_message({ target: "<teammate name>", message: "..." }).'
+	/** 带 refreshContext 的服务：模拟 dsh 每个 step 用注册表原文重建 contexts。 */
+	const refreshingHarness = () => {
+		const { ctx, handlers } = harness()
+		const raw = () => [{ name: 'team:identity', text: TEAM_IDENTITY_EN }, { name: 'working-directory:current', text: 'Current working directory: "E:\\work".' }]
+		const service = {
+			async assemble() {
+				const assembly = { ...BASE_ASSEMBLY, contexts: raw() }
+				const waterfall = handlers.get('system-prompt/assemble')
+				return waterfall === undefined ? assembly : await waterfall(assembly, {}, async () => assembly)
+			},
+			refreshContext(assembly) {
+				return { ...assembly, contexts: raw() }
+			},
+		}
+		ctx.systemPrompt = service
+		return { ctx, handlers, service }
+	}
+	for (const [key, apply] of [['yayan', applyYayan], ['cangjie', applyCangjie], ['maliang', applyMaliang]]) {
+		setPresetState({ yayan: false, cangjie: false, maliang: false, [key]: true })
+		const { ctx, service } = refreshingHarness()
+		apply(ctx)
+		const assembled = await service.assemble()
+		const refreshed = service.refreshContext(assembled)
+		const identity = refreshed.contexts.find(entry => entry.name === 'team:identity')
+		ok(/[\u4e00-\u9fff]/.test(identity?.text ?? ''), key + ' 的 context 翻译穿过 refreshContext')
+		ok(refreshed.contexts.some(entry => entry.name === 'working-directory:current'), key + ' 不增删 context，只改文本')
+		// 两阶段必须是同一份文本：不同就会让运行时上下文快照每步重发
+		const assembledIdentity = assembled.contexts.find(entry => entry.name === 'team:identity')
+		ok(assembledIdentity.text === identity.text, key + ' 的 assemble 与 refreshContext 文本逐字一致')
+	}
+	// 开关关闭时必须逐字节回到宿主行为
+	setPresetState({ yayan: false, cangjie: false, maliang: false })
+	const { ctx, service } = refreshingHarness()
+	applyYayan(ctx)
+	const passthrough = service.refreshContext({ sections: [], contexts: [], tools: [], variables: {} })
+	ok(passthrough.contexts[0].text === TEAM_IDENTITY_EN, '开关关闭时 refreshContext 原样返回')
+	// 三层共用同一个包装，卸到最后一层才还原
+	setPresetState({ yayan: true, cangjie: true, maliang: true })
+	const shared = refreshingHarness()
+	applyYayan(shared.ctx)
+	const wrappedOnce = shared.service.refreshContext
+	applyCangjie(shared.ctx)
+	applyMaliang(shared.ctx)
+	ok(shared.service.refreshContext === wrappedOnce, '三层共用同一个 refreshContext 包装')
+	ok(Object.hasOwn(shared.service, 'refreshContext'), '包装是自有属性，卸载时能整个删掉')
+	// 卸载到最后一层必须还原，否则关掉开关后 context 还是会被包着
+	const disposers = []
+	const unloading = refreshingHarness()
+	const original = unloading.service.refreshContext
+	const ctx2 = { ...unloading.ctx, effect: effect => { const dispose = effect(); if (typeof dispose === 'function') disposers.push(dispose); return () => {} } }
+	applyYayan(ctx2)
+	ok(unloading.service.refreshContext !== original, '启用时包上 refreshContext')
+	for (const dispose of disposers.splice(0)) dispose()
+	ok(unloading.service.refreshContext === original, '关闭后 refreshContext 还原成原方法')
+}
+
 // plan mode 不在 YAML 里静态汉化，而由开关打开时的翻译层负责
 for (const file of ['yayan-zh.mjs', 'cangjie-zh.mjs', 'maliang-zh.mjs']) {
 	const source = await read('plugins/' + file)

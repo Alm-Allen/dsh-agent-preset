@@ -1,5 +1,21 @@
 # Changelog
 
+## [2026.11.01] - 2026-11-01
+
+### Fixed
+
+- **contexts 的翻译每步被覆盖回英文**。`SystemPrompt.refreshContext` 每个 step 按注册表原文重建 contexts，瀑布里翻好的文本只在第一步之前有效。症状是开了 Team 的会话里 `team:identity` 段一直是 `You are the Team Lead named "lead".`，而 `team:policy` 因为注册成 section 一直正常。现在包装了 `ctx.systemPrompt.refreshContext`，对返回值的 `contexts` 再翻一遍；关闭开关时原样返回，三层共用同一个包装，卸到最后一层才还原。
+
+### Added
+
+- 三份身份段各加两句团队协作引导：主代理分配完工作后静静等待反馈；本身已是子代理/队友时不再向下唤起，活儿重就向主代理申请加人。不点工具名，装了与没装团队插件的会话都成立。
+
+### Changed
+
+- 机制说明补进 `文档/机制/翻译层.md` 的「为什么还要包一层 refreshContext」，并说明它为什么不违反 `文档/机制/运行时上下文.md` 里那条「快照不翻」的结论：两阶段文本逐字相同，`RuntimeContextProjection` 的比较仍然成立。
+- 自测新增 context 翻译穿过 refreshContext、两阶段文本逐字一致、关闭时原样、三层共用包装、卸载还原等断言，现共 100 项。
+- 三个汉化层里「本机 chat 已被 excludePresets 排除」的注释改成与现状一致的说法。
+
 ## [2026.10.31] - 2026-10-31
 
 ### Fixed

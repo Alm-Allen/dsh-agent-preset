@@ -84,6 +84,57 @@ function installAssemblePatch(service, translate) {
 	}
 }
 
+/** 已包装的 refreshContext 实例 → 包装状态。同一服务只包一次，三层按需增删 */
+const REFRESH_PATCHES = new WeakMap()
+
+/**
+ * 让 context 翻译穿过每步的 refreshContext。
+ *
+ * contexts（身份段、团队身份、工作目录快照）在组装之后还会按注册表原文重建一次，
+ * 瀑布里翻好的文本下一步就被覆盖。refreshContext 是同步方法，包一层对两版都成立。
+ * 详见 文档/机制/翻译层.md 的「为什么还要包一层 refreshContext」。
+ */
+function installRefreshContextPatch(service, translate) {
+	const original = service?.refreshContext
+	if (typeof original !== 'function') return () => {}
+	let patch = REFRESH_PATCHES.get(service)
+	if (patch === undefined) {
+		const layers = new Set()
+		const patched = function (...args) {
+			const refreshed = original.apply(this, args)
+			if (refreshed === null || typeof refreshed !== 'object' || !Array.isArray(refreshed.contexts)) return refreshed
+			let changed = false
+			const contexts = refreshed.contexts.map(entry => {
+				let next = entry
+				for (const layer of layers) next = layer(next)
+				if (next !== entry) changed = true
+				return next
+			})
+			return changed ? { ...refreshed, contexts } : refreshed
+		}
+		const owned = Object.hasOwn(service, 'refreshContext')
+		const dispose = () => {
+			if (service.refreshContext !== patched) return
+			if (owned) service.refreshContext = original
+			else delete service.refreshContext
+			REFRESH_PATCHES.delete(service)
+		}
+		try {
+			service.refreshContext = patched
+		} catch {
+			// 服务实例冻结时无能为力：contexts 只剩组装那一步生效
+			return () => {}
+		}
+		patch = { layers, dispose }
+		REFRESH_PATCHES.set(service, patch)
+	}
+	patch.layers.add(translate)
+	return () => {
+		patch.layers.delete(translate)
+		if (patch.layers.size === 0) patch.dispose()
+	}
+}
+
 /** 翻译工作区指令预算的明细片段（truncated <路径> from A to B bytes 或 omitted <路径>） */
 export function translateBudgetDetail(detail) {
 	if (typeof detail !== 'string' || detail.length === 0) return detail
@@ -269,6 +320,10 @@ export function createZhLayer({ presetKey, prose, patterns, docs, planMode, batc
 		// 开关检查留在包装内部：关闭时原样返回，与原生逐字节一致
 		const translateToolWhenEnabled = tool => isPresetEnabled(presetKey) ? translateTool(tool) : tool
 		ctx.effect(() => installAssemblePatch(ctx.systemPrompt, translateToolWhenEnabled), `${presetKey}-zh: patch assemble tools`)
+
+		// contexts 每步按注册表原文重建，翻译必须在这里再补一次；开关检查同样留在包装内部
+		const translateContextWhenEnabled = entry => isPresetEnabled(presetKey) ? translateContribution(entry) : entry
+		ctx.effect(() => installRefreshContextPatch(ctx.systemPrompt, translateContextWhenEnabled), `${presetKey}-zh: patch refresh contexts`)
 
 		ctx.on('system-prompt/assemble', async (_assembly, _context, next) => {
 			if (!isPresetEnabled(presetKey)) return next()
