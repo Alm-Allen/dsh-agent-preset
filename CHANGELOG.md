@@ -19,6 +19,10 @@
 - 补技能目录的其余状态说明（未确认到技能、发现不完整、部分技能未检查），此前只有「目录已更新」与「当前没有技能」两条。
 - 补文件策略的 `read-only` 与 `workspace-write` 两种模式；此前只有 `danger-full-access`。`workspace-write` 的工作区路径与额外可写目录是动态的，走正则。
 
+### Removed
+
+- 删除 `.github/workflows/publish.yml`：npm 发布改为手动执行，推标签只触发 GitHub Release。`package.json` 的 `prepublishOnly` 保留，手动 `npm publish` 前仍会跑离线自测。
+
 ### Docs
 
 - `文档/机制/双版本兼容.md` 重写：只支持 0.2.2-rc.1，记录已删除的旧版兼容项与新的升级复核步骤。

@@ -106,8 +106,7 @@ dsh-agent-preset/
 │   └── audit-coverage.mjs    翻译覆盖率审计
 ├── locale/{zh,en}.json       插件管理页显示名与描述
 ├── .github/workflows/
-│   ├── release.yml           推标签建 GitHub Release
-│   └── publish.yml           推标签发 npm（trusted publishing）
+│   └── release.yml           推标签建 GitHub Release
 ├── LICENSE                   MIT
 ├── README.md
 └── CHANGELOG.md
@@ -115,9 +114,7 @@ dsh-agent-preset/
 
 发布标签使用 `v<package.json version>`，版本必须是合法 semver：日期式版本不写前导零，是 `2026.11.3` 而不是 `2026.11.03`。
 
-推送标签后两条工作流并行：`.github/workflows/release.yml` 跑自测并创建 GitHub Release；`.github/workflows/publish.yml` 跑离线自测、校验 tarball 清单，再用 npm trusted publishing 发布到 `registry.npmjs.org`。发布口与 `access: public` 由 `package.json` 的 `publishConfig` 固定，仓库里不放 `.npmrc`。
-
-npm 端只需配置一次：包的 Settings → Trusted publishing 填仓库 `Alm-Allen/dsh-agent-preset` 与 workflow `publish.yml`。细节见 `文档/机制/npm 发布.md`（该目录不进 git）。
+推送标签后 `.github/workflows/release.yml` 跑自测并创建 GitHub Release。npm 发布改为手动执行：`npm publish`（`prepublishOnly` 会先跑离线自测）。发布口与 `access: public` 由 `package.json` 的 `publishConfig` 固定，仓库里不放 `.npmrc`。细节见 `文档/机制/npm 发布.md`（该目录不进 git）。
 
 ## 许可证
 
