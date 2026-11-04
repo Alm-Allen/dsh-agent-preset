@@ -1,16 +1,27 @@
 {
   "name": "@alm-allen/dsh-agent-preset",
-  "version": "2026.11.01",
+  "version": "2026.11.4",
   "description": "智能体预设：把雅言、仓颉、马良三个 DSH Agent 预设汉化层合并成一个插件；插件管理页分别启停，默认关闭时保持原生预设。",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alm-Allen/dsh-agent-preset.git"
+  },
+  "homepage": "https://github.com/Alm-Allen/dsh-agent-preset#readme",
+  "bugs": {
+    "url": "https://github.com/Alm-Allen/dsh-agent-preset/issues"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
   "main": "./plugins/agent-preset.mjs",
   "exports": {
     ".": "./plugins/agent-preset.mjs",
     "./yayan-zh": "./plugins/yayan-zh.mjs",
     "./cangjie-zh": "./plugins/cangjie-zh.mjs",
     "./maliang-zh": "./plugins/maliang-zh.mjs",
-    "./list-agents-shim": "./plugins/list-agents-shim.mjs",
     "./hide-harness-source": "./plugins/hide-harness-source.mjs",
     "./client": "./plugins/client.js",
     "./self-test": "./plugins/self-test.mjs",
@@ -24,8 +35,14 @@
     "cordis.patch.yml",
     "locale",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENSE"
   ],
+  "scripts": {
+    "test": "node plugins/self-test.mjs",
+    "check": "node --check plugins/agent-preset.mjs && node --check plugins/client.js",
+    "prepublishOnly": "node plugins/self-test.mjs"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
@@ -39,29 +56,21 @@
       ]
     }
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Alm-Allen/dsh-agent-preset.git"
-  },
   "keywords": [
     "deepseek-harness",
     "dsh",
     "dsh-plugin",
+    "dsh-preset",
     "agent-preset",
+    "chinese",
+    "locale",
+    "prompt",
     "yayan",
     "cangjie",
     "maliang"
   ],
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
-  },
-  "peerDependencies": {
-    "@deepseek-ai/dsh-tool-subagent-control": "*"
-  },
-  "peerDependenciesMeta": {
-    "@deepseek-ai/dsh-tool-subagent-control": {
-      "optional": true
-    }
   },
   "dependencies": {
     "@deepseek-ai/schemastery": "^3.18.4"

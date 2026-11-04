@@ -3,10 +3,11 @@
 # 但汉化层由 agent-preset 的配置决定是否生效。
 # 默认：三个开关关闭，预设保持原生。
 #
-# 三个 override 的 config.plugins 逐行取自 dsh 的 shipped 预设，rc（0.2.1-rc.4）与 α（0.2.2-alpha.2）
-# 已逐行对齐，只在 persona 后插入各自的中文化层。两版之间有差异的行只有两处，都由本文件吸收：
-# list_agents 行挂包内垫片（rc 是独立子包，α 已并入主包），tool-subagent 同时写两套模型选择键。
-# 升级 dsh 后要重新对照两版的 presets/*.patch.yml，差异点见 文档/机制/双版本兼容.md。
+# 三个 override 的 config.plugins 逐行取自 dsh 的 shipped 预设，web（0.2.1-rc.5）与 desktop（0.2.2-rc.1）
+# 已逐行对齐，只在 persona 后插入各自的中文化层。两版 shipped 现在完全一致：list_agents 已并入
+# tool-subagent-control 主包，tool-subagent 只写 modelSelection/modelDiscovery，tool-fs 显式关闭
+# apply_patch，ptc 用 tool-executor-ptc。升级 dsh 后要重新对照两版的 presets/*.patch.yml，
+# 差异点见 文档/机制/双版本兼容.md。
 
 - insert:
     - id: agent-preset
@@ -41,6 +42,9 @@
         disabled: !!js process.platform !== 'win32'
       - id: tool-fs
         name: '@deepseek-ai/dsh-tool-fs'
+        config:
+          # Set false to drop the apply_patch tool beside edit.
+          applyPatch: false
       - id: tool-fs-search
         name: '@deepseek-ai/dsh-tool-fs-search'
         config:
@@ -103,14 +107,11 @@
         config:
           - id: tool-subagent-control
             name: '@deepseek-ai/dsh-tool-subagent-control'
-          - id: tool-subagent-list-agents
-            name: '@alm-allen/dsh-agent-preset/list-agents-shim'
           - id: tool-subagent
             name: '@deepseek-ai/dsh-tool-subagent'
             config:
               provider: spawn
               toolName: subagent
-              modelSelectionSettings: true
               modelSelection: true
               modelDiscovery: true
           - id: tool-subagent-fork
@@ -139,7 +140,7 @@
         name: '@deepseek-ai/dsh-tool-present'
       - id: tool-plugin-manager
         name: '@deepseek-ai/dsh-plugin-manager/tools'
-        disabled: true
+        disabled: !!js "!ctx.get('profileContext')"
       - id: tool-plugin-market
         name: '@deepseek-ai/dsh-plugin-market/tools'
         disabled: true
@@ -172,6 +173,9 @@
         disabled: !!js process.platform !== 'win32'
       - id: tool-fs
         name: '@deepseek-ai/dsh-tool-fs'
+        config:
+          # Set false to drop the apply_patch tool beside edit.
+          applyPatch: false
       - id: tool-fs-search
         name: '@deepseek-ai/dsh-tool-fs-search'
         config:
@@ -234,14 +238,11 @@
         config:
           - id: tool-subagent-control
             name: '@deepseek-ai/dsh-tool-subagent-control'
-          - id: tool-subagent-list-agents
-            name: '@alm-allen/dsh-agent-preset/list-agents-shim'
           - id: tool-subagent
             name: '@deepseek-ai/dsh-tool-subagent'
             config:
               provider: spawn
               toolName: subagent
-              modelSelectionSettings: true
               modelSelection: true
               modelDiscovery: true
           - id: tool-subagent-fork
@@ -268,10 +269,8 @@
         config:
           fetch: true
           searchTimeoutMs: 60000
-      - id: tool-presentation
-        name: '@deepseek-ai/dsh-agent-tool-presentation'
-        config:
-          mode: ptc
+      - id: tool-executor-ptc
+        name: '@deepseek-ai/dsh-tool-executor-ptc'
       - id: present
         name: '@deepseek-ai/dsh-tool-present'
       - id: tool-plugin-manager
@@ -312,6 +311,9 @@
         disabled: !!js process.platform !== 'win32'
       - id: tool-fs
         name: '@deepseek-ai/dsh-tool-fs'
+        config:
+          # Set false to drop the apply_patch tool beside edit.
+          applyPatch: false
       - id: tool-fs-search
         name: '@deepseek-ai/dsh-tool-fs-search'
         config:
@@ -370,14 +372,11 @@
         config:
           - id: tool-subagent-control
             name: '@deepseek-ai/dsh-tool-subagent-control'
-          - id: tool-subagent-list-agents
-            name: '@alm-allen/dsh-agent-preset/list-agents-shim'
           - id: tool-subagent
             name: '@deepseek-ai/dsh-tool-subagent'
             config:
               provider: spawn
               toolName: subagent
-              modelSelectionSettings: true
               modelSelection: true
               modelDiscovery: true
           - id: tool-subagent-fork

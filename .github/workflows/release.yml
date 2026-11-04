@@ -49,6 +49,10 @@ jobs:
             echo "::error::标签 $GITHUB_REF_NAME 与 package.json 的 version $version 不一致"
             exit 1
           fi
+          if ! printf '%s' "$version" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; then
+            echo "::error::package.json 的 version $version 不是合法 semver（各段不许有前导零）"
+            exit 1
+          fi
 
           node -e "const fs=require('node:fs');const p=require('./package.json');const miss=[];for(const [k,v] of Object.entries(p.exports??{})){const f=typeof v==='string'?v:v.default;if(!f)continue;const star=f.indexOf('*');if(star!==-1){const dir=f.slice(0,f.lastIndexOf('/',star)+1);if(dir&&!fs.existsSync(dir))miss.push(k+' -> '+f+'（glob 目录 '+dir+' 不存在）');continue}if(!fs.existsSync(f))miss.push(k+' -> '+f)}if(miss.length){console.error('exports 指向不存在的文件: '+miss.join(', '));process.exit(1)}const patch=p.dsh?.bundle?.patch;if(!patch||!fs.existsSync(patch)){console.error('dsh.bundle.patch 不存在或为空: '+patch);process.exit(1)}console.log('包结构 OK：exports '+Object.keys(p.exports??{}).length+' 条（glob 键只校验目录），patch '+patch)"
 

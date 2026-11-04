@@ -82,7 +82,6 @@ const enLocale = JSON.parse(await read('locale/en.json'))
 equal(zhLocale.meta?.title, '智能体预设', '插件管理页中文显示名为智能体预设')
 equal(enLocale.meta?.title, 'Agent Presets', '插件管理页英文显示名为 Agent Presets')
 ok(manifest.dsh?.bundle?.patch === './cordis.patch.yml', 'bundle patch 指向 cordis.patch.yml')
-ok(manifest.peerDependencies?.['@deepseek-ai/dsh-tool-subagent-control'] !== undefined, '垫片依赖声明为 peer，linked 安装才走引擎解析')
 ok(manifest.dsh?.client?.platform === 'web', '客户端半区声明为 web')
 for (const [key, value] of Object.entries(manifest.exports ?? {})) {
 	if (key.includes('*')) continue
@@ -105,14 +104,14 @@ for (const [label, section] of [['雅言', standard], ['仓颉', ptc], ['马良'
 	equal((section.match(/name: '@alm-allen\/dsh-agent-preset\/hide-harness-source'/g) ?? []).length, 1, label + '挂载检出目录遮蔽行')
 }
 
-// rc 与 α 的行差异：list_agents 走垫片，tool-subagent 共存两套模型选择键
-const shimSource = await read('plugins/list-agents-shim.mjs')
-ok(shimSource.includes('ERR_MODULE_NOT_FOUND') && shimSource.includes('ERR_PACKAGE_PATH_NOT_EXPORTED'), '垫片对子包缺失的两种错误都静默退让')
-ok(!patch.includes("'@deepseek-ai/dsh-tool-subagent-control/list-agents'"), '不再直连 rc 的 list-agents 子包')
+// 预设行逐行重述 0.2.2-rc.1 的 shipped 文件
 for (const [label, section] of [['雅言', standard], ['仓颉', ptc], ['马良', cordis]]) {
-	ok(section.includes("name: '@alm-allen/dsh-agent-preset/list-agents-shim'"), label + '的 list_agents 行挂版本垫片')
-	ok(section.includes('modelSelectionSettings: true') && section.includes('modelSelection: true') && section.includes('modelDiscovery: true'), label + '同时写 rc 与 α 的模型选择键')
+	ok(!section.includes('list-agents'), label + '不再挂 list_agents 垫片行（主包已注册该工具）')
+	ok(section.includes('modelSelection: true') && section.includes('modelDiscovery: true') && !section.includes('modelSelectionSettings'), label + '只写当前版本的模型选择键')
+	ok(section.includes('applyPatch: false'), label + '显式关闭 apply_patch 工具')
 }
+ok(ptc.includes("name: '@deepseek-ai/dsh-tool-executor-ptc'") && !ptc.includes('dsh-agent-tool-presentation'), '仓颉用 PTC 执行器而不是旧的呈现转发层')
+ok(standard.includes("disabled: !!js \"!ctx.get('profileContext')\"") && !standard.includes('id: tool-plugin-manager\n        name: \'@deepseek-ai/dsh-plugin-manager/tools\'\n        disabled: true'), '雅言的插件管理工具跟随 shipped 的 profileContext 开关')
 
 // 默认值
 equal(PRESET_DEFAULTS, { yayan: false, cangjie: false, maliang: false }, '进程内默认值符合要求')

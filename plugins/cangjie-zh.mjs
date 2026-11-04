@@ -37,7 +37,7 @@ const EXECUTION_POLICY_ZH = `可逆且属于当前请求的工作（读取文件
 const PROSE = new Map([
 	[
 		"You are an AI agent powered by DeepSeek Harness.",
-		`你是由 DeepSeek Harness 驱动的 AI Agent。你必须使用汉语的思维方式进行思考和推理：思维链（reasoning）内容必须是中文，对用户的回答也使用中文。代码、命令、路径、标识符、工具名、参数名和专有名词保持原文，不要翻译。
+		`你是由 DeepSeek Harness 驱动的 AI Agent。代码、命令、路径、标识符、工具名、参数名和专有名词保持原文，不要翻译。
 
 ${EXECUTION_POLICY_ZH}
 
@@ -275,21 +275,6 @@ ${EXECUTION_POLICY_ZH}
 	[
 		"A skill is a reusable set of task-specific instructions. The following skills are available in this session:",
 		"技能是一组可复用的、面向具体任务的指令。本会话可用的技能如下：",
-	],
-
-	[
-		"Create, read, edit, and check Word documents (.docx), including reports, letters, and formatted tables. Use when a DOCX file is an input or requested deliverable. Load this skill before running Office commands. Use only bundled LibreOffice unless the user explicitly opts out; without that opt-out, do not search for another LibreOffice executable.",
-		"创建、读取、编辑与检查 Word 文档（.docx），包括报告、信函和带格式的表格。当 DOCX 文件是输入或需要交付的产物时使用。运行 Office 命令之前先加载本技能。除非用户明确表示不用，否则只用随附的 LibreOffice。",
-	],
-
-	[
-		"Create, read, edit, and check PowerPoint presentations (.pptx), including slide text, tables, images, and charts. Use when a PPTX file is an input or requested deliverable. Load this skill before running Office commands. Use only bundled LibreOffice unless the user explicitly opts out; without that opt-out, do not search for another LibreOffice executable.",
-		"创建、读取、编辑与检查 PowerPoint 演示文稿（.pptx），包括幻灯片文字、表格、图片和图表。当 PPTX 文件是输入或需要交付的产物时使用。运行 Office 命令之前先加载本技能。除非用户明确表示不用，否则只用随附的 LibreOffice。",
-	],
-
-	[
-		"Read, create, and modify Excel workbooks (.xlsx), including data, formulas, formatting, and pandas analysis. Use for Excel inputs or deliverables. Load before running Office commands. Data and formula tasks skip visual inspection; inspect only for formatting or layout needs. Use only bundled LibreOffice unless the user explicitly opts out; without that opt-out, do not search for another LibreOffice executable.",
-		"读取、创建与修改 Excel 工作簿（.xlsx），包括数据、公式、格式化和 pandas 分析。用于 Excel 输入或交付物。运行 Office 命令之前先加载。数据与公式类任务跳过视觉检查；只在涉及格式或版式需求时才检查。除非用户明确表示不用，否则只用随附的 LibreOffice。",
 	],
 
 	[
@@ -661,50 +646,6 @@ send_message 的目标用 spawn_teammate 或 list_agents 返回的 target；分�
 	// 0.2.1-rc.1：schedule 系列工具（新增工具，工具与全部参数说明）
 	// `tool-schedule` 在 rc.1 的 shipped `ptc` 里已挂载；它的说明只出现在 `tools:sdk` 段的
 	// JSDoc 与参数 schema 里，此前整组缺席，PTC 会话里全是英文。
-	[
-		"Create a reminder in the current session that delivers prompt when it becomes due. Supply exactly one timing parameter: after_seconds, at, every_seconds, daily, weekly, or cron. Local times that do not exist in the zone are skipped; repeated local times fire once, at the earlier instant. After downtime, a recurring reminder delivers only its latest missed occurrence. Delivery can repeat after a crash.",
-		"在当前会话中创建一个提醒，到点后投递 prompt。timing 参数必须恰好提供一个：after_seconds、at、every_seconds、daily、weekly 或 cron。在该时区里不存在的本地时间会被跳过；重复的本地时间只在较早的那一刻触发一次。停机之后，重复提醒只投递它最近一次错过的触发。崩溃后投递可能重复。",
-	],
-	["Reminder content to present when the target becomes due.", "目标到点时呈现的提醒内容。"],
-	[
-		"Concise task name in the user's language, at most 120 characters. Name only the core action and subject; keep essential target identifiers such as PR numbers and branch names. Do not include execution frequency (e.g. daily, hourly), scheduled dates/times, time zones, task status, or configuration and execution details (e.g. read-only mode, profile-tag filters), even when embedded in the requested or existing title. Do not append parenthetical notes. Put scheduling information in the timing parameters and execution instructions in prompt.",
-		"用用户语言写的简洁任务名，最多 120 个字符。只写核心动作与对象；保留 PR 号、分支名这类必要的目标标识。不要包含执行频率（如 daily、hourly）、计划日期/时间、时区、任务状态或配置与执行细节（如只读模式、profile 标签过滤），即使它们已经出现在请求或现有标题里。不要附加括号注释。把调度信息放进 timing 参数，把执行说明放进 prompt。",
-	],
-	["Delay in whole seconds.", "延后时长，以整秒为单位。"],
-	[
-		"Fixed-rate interval in whole seconds, at least 60, aligned to the creation time; changing it with schedule_update re-aligns it to the save time.",
-		"以整秒为单位的固定速率间隔，至少 60，并与创建时间对齐；用 schedule_update 修改它会对齐到保存时间。",
-	],
-	["Every day at a local time.", "每天在某个本地时间执行。"],
-	[
-		"HH:mm:ss with optional 1-3 fractional digits, for example 23:00:00.",
-		"HH:mm:ss，可带 1-3 位小数，例如 23:00:00。",
-	],
-	["UTC or IANA Area/Location, for example Asia/Shanghai.", "UTC 或 IANA Area/Location，例如 Asia/Shanghai。"],
-	["On the given weekdays at a local time.", "在给定的 weekdays 的某个本地时间执行。"],
-	[
-		"HH:mm:ss with optional 1-3 fractional digits, for example 09:00:00.",
-		"HH:mm:ss，可带 1-3 位小数，例如 09:00:00。",
-	],
-	["ISO weekdays, Monday 1 through Sunday 7, without repetitions.", "ISO 星期序号，周一为 1、周日为 7，不得重复。"],
-	["Five-field Vixie cron expression in a time zone.", "某个时区中的五字段 Vixie cron 表达式。"],
-	[
-		"Absolute target: an RFC 3339 date-time with offset, or a local date, time, and IANA time_zone.",
-		"绝对目标：带偏移量的 RFC 3339 日期时间，或本地日期、时间加 IANA time_zone。",
-	],
-	[
-		"Delete a reminder in the current session, active or inactive. Deletion does not retract a reminder message that is already queued.",
-		"删除当前会话中的一个提醒，无论它是否处于活动状态。删除不会撤回已经排队的提醒消息。",
-	],
-	["Exact schedule id.", "确切的 schedule id。"],
-	["List the active reminders in the current session.", "列出当前会话中处于活动状态的提醒。"],
-	[
-		"Change a reminder in place, keeping its id. Supply a new title, prompt, or at most one timing parameter; omitted fields keep their stored values. To change a relative delay, create a new reminder.",
-		"就地修改一个提醒，保留它的 id。提供新的 title、prompt，或至多一个 timing 参数；省略的字段保留已存的值。要修改相对延时，请新建一个提醒。",
-	],
-	["Schedule id returned by schedule_list.", "由 schedule_list 返回的 schedule id。"],
-	["New task name; follow the schedule_create title rules.", "新任务名；遵循 schedule_create 的标题规则。"],
-	["New reminder content.", "新的提醒内容。"],
 	["True when the foreground wait expired before the user submitted an answer batch. The questions remain answerable; this is not a skipped answer.", "前台等待在用户提交答案批之前就到期时为 true。这些问题仍然可以回答；这不是被跳过。"],
 	["Tool call whose unanswered questions remain pending.", "其未答复的问题仍处于待答状态的工具调用。"],
 	["How to continue while the questions stay answerable.", "在问题仍可回答期间该怎么继续。"],
@@ -717,6 +658,67 @@ send_message 的目标用 spawn_teammate 或 list_agents 返回的 target；分�
 	["Inspect subagent models without changing the current Agent. No arguments: providers; `provider`: allowed models; `provider` + `model`: that model and its reasoning efforts. Inspect options here before selecting a child provider and model; use returned ids for delegation.", "查看 subagent 可用的模型，不改动当前 Agent。不带参数：列出 provider；只给 `provider`：该 provider 允许的模型；`provider` + `model`：该模型及其推理档位。为子 agent 选 provider 与模型之前先在这里查看，委派时用返回的 id。"],
 	["Plan approved — plan mode exited; carry out the plan starting with your next step.", "计划已批准——已退出 plan mode；从下一步开始执行这份计划。"],
 	["The user dismissed the plan review to reply in their own words; plan mode remains active.", "用户关闭了计划评审，想用自己的话回复；plan mode 仍然生效。"],
+	// 0.2.2-rc.1：schedule 从 reminder 改成计划任务（task）模型。旧 reminder 条目保留，旧版 dsh 仍能命中。
+	[
+		"Only create or modify scheduled tasks at the user's explicit request; prior explicit user authorization for the running scheduled task remains valid.",
+		"只在用户明确要求时创建或修改计划任务；用户此前对正在运行的计划任务的明确授权仍然有效。",
+	],
+	[
+		"Create a scheduled task. At each occurrence of rrule, prompt is delivered to the target session as a scheduled message from the user. The result includes the task id and the next occurrence as scheduledAt in UTC and scheduledAtLocal in the zone of rrule. After downtime, only the latest missed occurrence is delivered. Delivery can repeat after a crash.",
+		"创建一个计划任务。每次 rrule 触发时，prompt 会作为来自用户的消息投递到目标会话。结果包含任务 id，以及下一次触发时间：UTC 的 scheduledAt 与 rrule 时区的 scheduledAtLocal。停机恢复后只投递最近一次错过的触发。崩溃后可能重复投递。",
+	],
+	[
+		"List scheduled tasks, including tasks created from other sessions. Active tasks come first, ordered by scheduledAt.",
+		"列出计划任务，包括其他会话创建的任务。活动任务排在前面，按 scheduledAt 排序。",
+	],
+	["View one scheduled task by id.", "按 id 查看一个计划任务。"],
+	[
+		"Update, pause, resume, or delete one scheduled task by id. Deleting does not retract queued messages.",
+		"按 id 更新、暂停、恢复或删除一个计划任务。删除不会撤回已排队的消息。",
+	],
+	[
+		"Supported RFC 5545 subset: one DTSTART line, a newline, and one RRULE line. DTSTART ends in Z for UTC or carries TZID with an IANA time zone; a fixed offset such as UTC+5 is Etc/GMT-5, with the sign reversed. DTSTART must name an existing local time. A TZID rule keeps local clock time across daylight-saving changes; generated nonexistent local times are skipped, and repeated ones occur once, at the earlier instant. DTSTART may be in the past; delivery starts with the first occurrence after creation. A one-time delivery is RRULE:FREQ=DAILY;COUNT=1. No SECONDLY; BYSECOND takes one value. COUNT is at most 1000; use UNTIL for longer rules. MINUTELY and HOURLY accept no BY parts, so select clock times with DAILY or WEEKLY plus BYHOUR and BYMINUTE. BYMONTHDAY and ordinal BYDAY require MONTHLY or YEARLY; BYYEARDAY and BYWEEKNO require YEARLY. Ordinal BYDAY cannot combine with BYWEEKNO. Each FREQ period allows at most 10080 candidates before BYSETPOS, which accepts at most 31 values. UNTIL is a UTC instant ending in Z. Example: \"DTSTART;TZID=Asia/Singapore:20260901T080000\\nRRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1\"",
+		"支持的 RFC 5545 子集：一行 DTSTART、一个换行、一行 RRULE。DTSTART 以 Z 结尾表示 UTC，或用 TZID 携带 IANA 时区；固定偏移（如 UTC+5）写成 Etc/GMT-5，符号相反。DTSTART 必须是一个存在的本地时间。TZID 规则在夏令时变化时保持本地钟表时间；生成的不存在本地时间会被跳过，重复的本地时间只在较早的时刻触发一次。DTSTART 可以在过去；投递从创建后的第一次触发开始。一次性投递是 RRULE:FREQ=DAILY;COUNT=1。没有 SECONDLY；BYSECOND 只取一个值。COUNT 最多 1000；更长的规则用 UNTIL。MINUTELY 与 HOURLY 不接受 BY 部件，所以用 DAILY 或 WEEKLY 加 BYHOUR、BYMINUTE 选择钟点。BYMONTHDAY 与序数 BYDAY 需要 MONTHLY 或 YEARLY；BYYEARDAY 与 BYWEEKNO 需要 YEARLY。序数 BYDAY 不能与 BYWEEKNO 组合。每个 FREQ 周期在 BYSETPOS 之前最多允许 10080 个候选，BYSETPOS 最多接受 31 个值。UNTIL 是一个以 Z 结尾的 UTC 时刻。示例：\"DTSTART;TZID=Asia/Singapore:20260901T080000\\nRRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1\"",
+	],
+	["Instruction delivered at each occurrence.", "每次触发时投递的指令。"],
+	["true for active tasks only; false for paused and ended tasks only; omitted for all tasks.", "true 只列活动任务；false 只列已暂停与已结束的任务；省略则列出全部。"],
+	["Number of tasks to skip; defaults to 0.", "跳过的任务数量；默认为 0。"],
+	["Task id.", "任务 id。"],
+	["update applies the provided fields, at least one; delete removes the task.", "update 应用给出的字段（至少一个）；delete 删除该任务。"],
+	["New instruction delivered at each occurrence.", "每次触发时投递的新指令。"],
+	["New recurrence in the schedule_create rrule format.", "新的重复规则，格式与 schedule_create 的 rrule 相同。"],
+	[
+		"Omit to retain the destination and its creation settings. Providing target replaces them; new_once reserves a different Session. New targets capture this Session's working directory and preset. Choices are the same as schedule_create.",
+		"省略则保留原投递目标及其创建设置。提供 target 会替换它们；new_once 会占用另一个 Session。新的目标会记录本会话的工作目录与预设。可选值与 schedule_create 相同。",
+	],
+	[
+		"false pauses the task; true resumes only if its timing has a future occurrence. Otherwise provide a new rrule.",
+		"false 暂停任务；true 只在它的时间还有未来触发时恢复。否则请提供新的 rrule。",
+	],
+	[
+		"updatedAt from the latest result that returned this task; if the task changed after that result, the result is schedule_conflict and nothing changes.",
+		"最近一次返回该任务的结果里的 updatedAt；如果任务在那之后变了，结果是 schedule_conflict，且不做任何改动。",
+	],
+	// 技能目录的其余状态说明：旧版就有，此前漏收。
+	["No skills could be confirmed in this discovery attempt.", "本次技能发现未能确认任何技能。"],
+	[
+		"Wait for an updated catalog before calling the `skill` tool. Do not infer skill instructions from an empty catalog.",
+		"等到目录更新之后再调用 `skill` 工具。不要从空目录推断技能说明。",
+	],
+	["No skills could be confirmed in this discovery attempt. Do not use names from earlier skill catalogs.", "本次技能发现未能确认任何技能。不要使用早先技能目录里的名字。"],
+	[
+		"Skill discovery is incomplete. This catalog of currently available skills replaces every earlier available-skills list in this session:",
+		"技能发现不完整。这份当前可用技能目录取代本会话中此前所有的可用技能列表：",
+	],
+	[
+		"Some skills could not be checked. Only confirmed skills are listed; a lower-priority definition of the same name may be selected when a preferred source is unavailable. Discovery will be retried on the next request.",
+		"部分技能未能检查。这里只列出已确认的技能；当首选来源不可用时，可能选中同名但优先级更低的定义。下次请求时会重试发现。",
+	],
+	// 文件策略的另外两种模式：表里原先只有 danger-full-access。
+	[
+		"Current DSH file policy: read-only. Any available operation enforced by the DSH file sandbox cannot modify files in the standing mode. Do not refuse a required modification from this policy alone: try an available tool normally and follow any denial and escalation guidance it returns.",
+		"当前 DSH 文件策略：read-only。DSH 文件沙箱会阻止当前模式下任何可用的修改操作。不要仅凭这条策略就拒绝必需的修改：照常尝试可用的工具，并遵循它返回的拒绝与提权指引。",
+	],
 ]);
 
 /**
@@ -741,18 +743,6 @@ const PATTERNS = [
 		() => '用主动语态清楚、简洁地描述这条命令做什么，5–10 个词（显示在 UI 中）。示例："ls" → "List files in current directory"；"git status" → "Show working tree status"；"npm install" → "Install package dependencies"。'],
 	[/Wait seconds for the entire batch \(default (\d+)\); omit unless the user specifies a duration\. Use -1 only when an answer is required before proceeding\./,
 		(_m, d) => `等待整批答案的秒数（默认 ${d}）；除非用户指定了时长，否则省略。只有在必须拿到答案才能继续时才用 -1。`],
-	[/Fixed-rate interval in whole seconds, at least (\d+), aligned to the creation time; changing it with schedule_update re-aligns it to the save time\./,
-		(_m, n) => `以整秒为单位的固定间隔，至少 ${n}，与创建时间对齐；用 schedule_update 修改它会对齐到保存时间。`],
-	[
-		/^The DeepSeek Harness implementation checkout is at (.+?)\. The checkout location and current working directory are separate values and may differ; never infer the working directory from this path\. Use pwd to determine the current working directory\. Use this checkout only to inspect or extend DSH itself\.$/,
-		(_m, root) =>
-			`DeepSeek Harness 的实现代码检出目录位于 ${root}。它与当前工作目录无关，只用于查看或扩展 DSH 本身。`,
-	],
-	[
-		/^You are interacting with the user through the DeepSeek Harness Web GUI at \S+\. When the user refers to "this page", "this GUI", or "this app" without naming another target, they mean this GUI\.[\s\S]*$/,
-		(_m) =>
-			`你正在通过本机 DeepSeek Harness Web GUI 与用户交互。当用户提到"这个页面""这个 GUI"或"这个应用"而没有指明其他目标时，他们指的就是这个 GUI。浏览器不会提供任何隐式的 DOM、路由或截图上下文。`,
-	],
 	// 0.2.1-rc.1：运行时上下文里的动态条目（路径与 URL 由 harness 注入到 contexts）。
 	// 只翻渲染侧，落地快照就是同一份渲染结果，因此不破坏「渲染侧 vs 落地侧」的逐字比较。
 	[/^Current working directory: "(.+?)"\.$/, (_m, dir) => `当前工作目录：${dir}。`],
@@ -856,6 +846,24 @@ const PATTERNS = [
 		/^You are teammate "([^"]+)"\.\nYour Team Lead is named "lead"\.\nTo message your Team Lead, use send_message\(\{ target: "lead", message: "\.\.\." \}\)\.\nUse list_agents\(\{\}\) to find your teammates and their names\.\nTo message another teammate, use send_message\(\{ target: "<teammate name>", message: "\.\.\." \}\)\.$/,
 		(_m, name) =>
 			`你是队友 "${name}"。\n你的 Team Lead 名为 "lead"。\n要给 Team Lead 发消息，用 send_message({ target: "lead", message: "..." })。\n用 list_agents({}) 找到你的队友及他们的名字。\n要给另一位队友发消息，用 send_message({ target: "<teammate name>", message: "..." })。`,
+	],
+	// 0.2.2-rc.1：schedule 改成计划任务后带数字的参数描述，走正则。
+	[
+		/Task name of at most (\d+) characters in the user's language: action plus object\. Omit timing, status, ids, and bracketed suffixes\./,
+		(_m, max) => `任务名称，用用户的语言、最多 ${max} 个字符：动作加对象。省略时间、状态、id 与括号后缀。`,
+	],
+	[
+		/Page size from 1 to (\d+); defaults to (\d+)\./,
+		(_m, max, fallback) => `分页大小，从 1 到 ${max}；默认 ${fallback}。`,
+	],
+	[
+		/this_session delivers to this session; new_once delivers to the same new session every time, opened at the first delivery; new opens a different new session for every delivery(, at most once every (\d+) (minutes|seconds))?\. New sessions use this session's working directory and preset\. With this_session or new_once, a delivery waits until the previous one finishes, and only the latest occurrence that passed meanwhile is delivered\. Use this_session for reminders and for follow-ups to this conversation; use new_once or new for independent work, such as a recurring report, and whenever the user asks for a new conversation\./,
+		(_m, count, unit) => `this_session 投递到本会话；new_once 每次都投递到同一个新会话，在第一次投递时创建；new 每次投递都新开一个会话${count === undefined ? '' : `，最多每 ${count} ${unit === 'minutes' ? '分钟' : '秒'}一次`}。新会话沿用本会话的工作目录与预设。用 this_session 或 new_once 时，投递会等上一次完成，期间错过的触发只投递最近一次。提醒与对本对话的跟进用 this_session；独立的工作用 new_once 或 new，例如定期报告，以及用户要求新开对话时。`,
+	],
+	// 文件策略的 workspace-write 模式：工作区路径与额外可写目录都是动态的。
+	[
+		/Current DSH file policy: workspace-write\. Any available operation enforced by the DSH file sandbox may modify files under the session workspace: (.+?)\.( Additional writable directories: (.+?)\.)? Some platform temporary areas may also be writable\./,
+		(_m, workspace, _whole, extra) => `当前 DSH 文件策略：workspace-write。DSH 文件沙箱允许当前可用的修改操作作用于会话工作区：${workspace}。${extra === undefined ? '' : `额外可写目录：${extra}。`}某些平台临时区域也可能可写。`,
 	],
 ];
 
@@ -2015,6 +2023,43 @@ const DOCS = new Map([
 		"被选中的选项标签。为空且没有 custom 表示用户明确跳过了这个问题。",
 	],
 	["Optional free-form answer; omitted for a skipped question.", "可选的自由文本答案；被跳过的问题省略。"],
+	// 0.2.2-rc.1：schedule 改成计划任务后的工具与参数说明（PTC 的 JSDoc 走这张表）。
+	[
+		"Create a scheduled task. At each occurrence of rrule, prompt is delivered to the target session as a scheduled message from the user. The result includes the task id and the next occurrence as scheduledAt in UTC and scheduledAtLocal in the zone of rrule. After downtime, only the latest missed occurrence is delivered. Delivery can repeat after a crash.",
+		"创建一个计划任务。每次 rrule 触发时，prompt 会作为来自用户的消息投递到目标会话。结果包含任务 id，以及下一次触发时间：UTC 的 scheduledAt 与 rrule 时区的 scheduledAtLocal。停机恢复后只投递最近一次错过的触发。崩溃后可能重复投递。",
+	],
+	[
+		"List scheduled tasks, including tasks created from other sessions. Active tasks come first, ordered by scheduledAt.",
+		"列出计划任务，包括其他会话创建的任务。活动任务排在前面，按 scheduledAt 排序。",
+	],
+	["View one scheduled task by id.", "按 id 查看一个计划任务。"],
+	[
+		"Update, pause, resume, or delete one scheduled task by id. Deleting does not retract queued messages.",
+		"按 id 更新、暂停、恢复或删除一个计划任务。删除不会撤回已排队的消息。",
+	],
+	[
+		"Supported RFC 5545 subset: one DTSTART line, a newline, and one RRULE line. DTSTART ends in Z for UTC or carries TZID with an IANA time zone; a fixed offset such as UTC+5 is Etc/GMT-5, with the sign reversed. DTSTART must name an existing local time. A TZID rule keeps local clock time across daylight-saving changes; generated nonexistent local times are skipped, and repeated ones occur once, at the earlier instant. DTSTART may be in the past; delivery starts with the first occurrence after creation. A one-time delivery is RRULE:FREQ=DAILY;COUNT=1. No SECONDLY; BYSECOND takes one value. COUNT is at most 1000; use UNTIL for longer rules. MINUTELY and HOURLY accept no BY parts, so select clock times with DAILY or WEEKLY plus BYHOUR and BYMINUTE. BYMONTHDAY and ordinal BYDAY require MONTHLY or YEARLY; BYYEARDAY and BYWEEKNO require YEARLY. Ordinal BYDAY cannot combine with BYWEEKNO. Each FREQ period allows at most 10080 candidates before BYSETPOS, which accepts at most 31 values. UNTIL is a UTC instant ending in Z. Example: \"DTSTART;TZID=Asia/Singapore:20260901T080000\\nRRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1\"",
+		"支持的 RFC 5545 子集：一行 DTSTART、一个换行、一行 RRULE。DTSTART 以 Z 结尾表示 UTC，或用 TZID 携带 IANA 时区；固定偏移（如 UTC+5）写成 Etc/GMT-5，符号相反。DTSTART 必须是一个存在的本地时间。TZID 规则在夏令时变化时保持本地钟表时间；生成的不存在本地时间会被跳过，重复的本地时间只在较早的时刻触发一次。DTSTART 可以在过去；投递从创建后的第一次触发开始。一次性投递是 RRULE:FREQ=DAILY;COUNT=1。没有 SECONDLY；BYSECOND 只取一个值。COUNT 最多 1000；更长的规则用 UNTIL。MINUTELY 与 HOURLY 不接受 BY 部件，所以用 DAILY 或 WEEKLY 加 BYHOUR、BYMINUTE 选择钟点。BYMONTHDAY 与序数 BYDAY 需要 MONTHLY 或 YEARLY；BYYEARDAY 与 BYWEEKNO 需要 YEARLY。序数 BYDAY 不能与 BYWEEKNO 组合。每个 FREQ 周期在 BYSETPOS 之前最多允许 10080 个候选，BYSETPOS 最多接受 31 个值。UNTIL 是一个以 Z 结尾的 UTC 时刻。示例：\"DTSTART;TZID=Asia/Singapore:20260901T080000\\nRRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1\"",
+	],
+	["Instruction delivered at each occurrence.", "每次触发时投递的指令。"],
+	["true for active tasks only; false for paused and ended tasks only; omitted for all tasks.", "true 只列活动任务；false 只列已暂停与已结束的任务；省略则列出全部。"],
+	["Number of tasks to skip; defaults to 0.", "跳过的任务数量；默认为 0。"],
+	["Task id.", "任务 id。"],
+	["update applies the provided fields, at least one; delete removes the task.", "update 应用给出的字段（至少一个）；delete 删除该任务。"],
+	["New instruction delivered at each occurrence.", "每次触发时投递的新指令。"],
+	["New recurrence in the schedule_create rrule format.", "新的重复规则，格式与 schedule_create 的 rrule 相同。"],
+	[
+		"Omit to retain the destination and its creation settings. Providing target replaces them; new_once reserves a different Session. New targets capture this Session's working directory and preset. Choices are the same as schedule_create.",
+		"省略则保留原投递目标及其创建设置。提供 target 会替换它们；new_once 会占用另一个 Session。新的目标会记录本会话的工作目录与预设。可选值与 schedule_create 相同。",
+	],
+	[
+		"false pauses the task; true resumes only if its timing has a future occurrence. Otherwise provide a new rrule.",
+		"false 暂停任务；true 只在它的时间还有未来触发时恢复。否则请提供新的 rrule。",
+	],
+	[
+		"updatedAt from the latest result that returned this task; if the task changed after that result, the result is schedule_conflict and nothing changes.",
+		"最近一次返回该任务的结果里的 updatedAt；如果任务在那之后变了，结果是 schedule_conflict，且不做任何改动。",
+	],
 ]);
 
 /** plan mode 段不能写进 YAML（那里只能填一种语言），由运行时按原文精确匹配 */

@@ -16,15 +16,21 @@
 
 ### 插件管理页
 
-打开 **插件 → 添加插件**，输入：
+打开 **插件 → 添加插件**，输入包名：
 
 ```text
-github:Alm-Allen/dsh-agent-preset
+@alm-allen/dsh-agent-preset
 ```
 
 ### 命令行
 
 把 `web` 换成实际使用的 profile 名：
+
+```sh
+dsh plugin --profile web add @alm-allen/dsh-agent-preset
+```
+
+也可以从 GitHub 仓库直接装——仓库里放的就是发布产物，不需要构建授权：
 
 ```sh
 dsh plugin --profile web add github:Alm-Allen/dsh-agent-preset
@@ -57,7 +63,7 @@ dsh plugin --profile web remove @alm-allen/dsh-yinyu-preset
 
 ## 兼容性
 
-当前基准是 **dsh 0.2.1-rc.4**（web）与 **0.2.2-alpha.2**（desktop）。插件通过 `cordis.patch.yml` 完整覆盖三个原生预设，因此升级 DSH 后需要重新核对出货预设，尤其是 `standard`、`ptc`、`cordis` 的插件行。
+只支持 **dsh 0.2.2-rc.1**（web 与 desktop 的核心包、`dsh-web-app` 都是这一版）。插件通过 `cordis.patch.yml` 完整覆盖三个原生预设，因此升级 DSH 后需要重新核对出货预设，尤其是 `standard`、`ptc`、`cordis` 的插件行；不再为旧版 DSH 保留兼容行或兼容词条。
 
 包内没有构建步骤：`plugins/` 与 `cordis.patch.yml` 就是发布产物。
 
@@ -67,10 +73,10 @@ dsh plugin --profile web remove @alm-allen/dsh-yinyu-preset
 
 ```sh
 npm install
-node plugins/self-test.mjs
+npm test        # 等价于 node plugins/self-test.mjs
 ```
 
-自测覆盖包清单、三个预设组合、开关默认值、汉化层关闭直通与开启替换、检出目录遮蔽，以及浏览器客户端注册协议。
+自测覆盖包清单、三个预设与 shipped 的逐行对齐、开关默认值、汉化层关闭直通与开启替换、检出目录遮蔽，以及浏览器客户端注册协议。
 
 机制说明与踩坑记录在 `文档/`（本目录不进 git 追踪）；代码注释只留结论并指回对应那篇。
 
@@ -95,16 +101,23 @@ dsh-agent-preset/
 │   ├── yayan-zh.mjs          雅言汉化层
 │   ├── cangjie-zh.mjs        仓颉汉化层
 │   ├── maliang-zh.mjs        马良汉化层
-│   ├── list-agents-shim.mjs  rc 与 α 的 list_agents 行垫片
 │   ├── hide-harness-source.mjs  遮蔽运行时上下文里的检出目录一条
 │   ├── self-test.mjs         离线契约测试
 │   └── audit-coverage.mjs    翻译覆盖率审计
 ├── locale/{zh,en}.json       插件管理页显示名与描述
+├── .github/workflows/
+│   ├── release.yml           推标签建 GitHub Release
+│   └── publish.yml           推标签发 npm（trusted publishing）
+├── LICENSE                   MIT
 ├── README.md
 └── CHANGELOG.md
 ```
 
-发布标签使用 `v<package.json version>`；推送标签后，`.github/workflows/release.yml` 会运行自测并创建 GitHub Release。
+发布标签使用 `v<package.json version>`，版本必须是合法 semver：日期式版本不写前导零，是 `2026.11.3` 而不是 `2026.11.03`。
+
+推送标签后两条工作流并行：`.github/workflows/release.yml` 跑自测并创建 GitHub Release；`.github/workflows/publish.yml` 跑离线自测、校验 tarball 清单，再用 npm trusted publishing 发布到 `registry.npmjs.org`。发布口与 `access: public` 由 `package.json` 的 `publishConfig` 固定，仓库里不放 `.npmrc`。
+
+npm 端只需配置一次：包的 Settings → Trusted publishing 填仓库 `Alm-Allen/dsh-agent-preset` 与 workflow `publish.yml`。细节见 `文档/机制/npm 发布.md`（该目录不进 git）。
 
 ## 许可证
 

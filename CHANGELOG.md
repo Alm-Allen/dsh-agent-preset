@@ -1,5 +1,47 @@
 # Changelog
 
+## [2026.11.4] - 2026-11-04
+
+### Changed
+
+- **同步 dsh 0.2.2-rc.1 的 shipped 预设**。web（0.2.1-rc.5，其 `dsh-web-app` 与核心包都是 0.2.2-rc.1）与 desktop（0.2.2-rc.1）的四个 preset patch.yml 已经逐行一致，`cordis.patch.yml` 的三个 override 照此重述：
+  - `tool-fs` 显式写 `applyPatch: false`（0.2.2-rc.1 的出货值）；
+  - `tool-subagent` 只写 `modelSelection` 与 `modelDiscovery`，删掉旧的 `modelSelectionSettings`；
+  - ptc 预设改用 `@deepseek-ai/dsh-tool-executor-ptc`，删掉旧的 `dsh-agent-tool-presentation` 转发行；
+  - standard 的 `tool-plugin-manager` 跟随出货改成 `!!js "!ctx.get('profileContext')"`。
+- **删掉 list_agents 垫片**：`@deepseek-ai/dsh-tool-subagent-control` 0.2.2-rc.1 的主入口已经注册 `list_agents`，shipped 不再单列该行。`plugins/list-agents-shim.mjs`、`package.json` 的 export 与 peer 声明、自测里的垫片断言一并删除。
+- 自测新增「预设行逐行重述」断言：三个预设都不得再挂垫片行、只写当前模型选择键、显式关闭 apply_patch；仓颉用 PTC 执行器；雅言的插件管理工具跟随 profileContext。现共 101 项。
+- **不再为旧版 dsh 保留兼容**。目标版本只有 0.2.2-rc.1：翻译表里旧 reminder 的 schedule 条目、旧版带路径的 harness / Web GUI 正则、旧 office 长描述已删除；其余历史条目仍在表里，但只保证 0.2.2-rc.1 的文本被正确命中。
+
+### Added
+
+- 汉化层补 dsh 0.2.2-rc.1 重写的 `tool-schedule`：从 reminder 模型换成计划任务（task）模型，新增工具描述、RRULE 帮助、target/active/expectedUpdatedAt 等参数说明，以及带数字的标题与分页说明（走正则）。旧 reminder 条目保留，旧版 dsh 仍能命中。
+- 补技能目录的其余状态说明（未确认到技能、发现不完整、部分技能未检查），此前只有「目录已更新」与「当前没有技能」两条。
+- 补文件策略的 `read-only` 与 `workspace-write` 两种模式；此前只有 `danger-full-access`。`workspace-write` 的工作区路径与额外可写目录是动态的，走正则。
+
+### Docs
+
+- `文档/机制/双版本兼容.md` 重写：只支持 0.2.2-rc.1，记录已删除的旧版兼容项与新的升级复核步骤。
+- `AGENTS.md` 与 `README.md` 的基准更新到 rc 0.2.1-rc.5 / 0.2.2-rc.1，包结构删掉垫片文件。
+
+## [2026.11.3] - 2026-11-03
+
+### Added
+
+- npm 发布配置：`publishConfig` 把发布口固定到 `registry.npmjs.org` 并声明 `access: public`；补 `homepage`、`bugs`、MIT `LICENSE`，`files` 白名单加上 LICENSE。
+- `.github/workflows/publish.yml`：推 `v*` 标签时用 npm trusted publishing（OIDC + `--provenance`）发布。发布前校验标签与版本逐字一致、版本无前导零、tarball 里该有的一样不少、不该有的一样不混。
+- `package.json` 加 `test`、`check`、`prepublishOnly`：`prepublishOnly` 跑离线自测，自测不过就发布不出去。
+
+### Changed
+
+- `version` 改成合法 semver `2026.11.3`。semver 不允许前导零，npm 会把 `2026.11.03` 静默清理成 `2026.11.3` 并警告，标签与版本就对不上。历史段标题保持旧写法，只有新版本按合法格式写。
+- `文档/机制/身份段.md` 开头同步成新的正文构成，并记下不再写语言要求的原因。
+- 机制说明补进 `文档/机制/npm 发布.md`：发布口为什么固定在 npmjs、日期式版本的前导零坑、包里放什么、trusted publishing 的前置与 npm 版本要求。
+
+### Removed
+
+- 三份身份段删掉语言与思维链要求：「你必须使用汉语的思维方式进行思考和推理：思维链（reasoning）内容必须是中文，对用户的回答也使用中文」。汉化本身已经决定输出语言，多一句指令只会跟任务争注意力。身份段首句现在只剩身份声明与术语保留要求。
+
 ## [2026.11.01] - 2026-11-01
 
 ### Fixed
