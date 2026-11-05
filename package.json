@@ -1,6 +1,6 @@
 {
   "name": "@alm-allen/dsh-agent-preset",
-  "version": "2026.11.4",
+  "version": "2026.11.5",
   "description": "智能体预设：把雅言、仓颉、马良三个 DSH Agent 预设汉化层合并成一个插件；插件管理页分别启停，默认关闭时保持原生预设。",
   "type": "module",
   "license": "MIT",
@@ -11,10 +11,6 @@
   "homepage": "https://github.com/Alm-Allen/dsh-agent-preset#readme",
   "bugs": {
     "url": "https://github.com/Alm-Allen/dsh-agent-preset/issues"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org",
-    "access": "public"
   },
   "main": "./plugins/agent-preset.mjs",
   "exports": {
@@ -40,8 +36,7 @@
   ],
   "scripts": {
     "test": "node plugins/self-test.mjs",
-    "check": "node --check plugins/agent-preset.mjs && node --check plugins/client.js",
-    "prepublishOnly": "node plugins/self-test.mjs"
+    "check": "node --check plugins/agent-preset.mjs && node --check plugins/client.js"
   },
   "dsh": {
     "bundle": {

@@ -1,5 +1,22 @@
 # Changelog
 
+## [2026.11.5] - 2026-11-05
+
+### Fixed
+
+- **0.2.2-rc.1 上仍会透出英文原文，两处都修掉。**
+  - `tool:write` / `tool:edit` 的 guidance 在 0.2.2-rc.1 改成不带 `(the default fs-observation-policy requires it)` 的短句，三份表里只有旧长句的键，命中不了。键换成新句子，中文译文里那句括注一并去掉。
+  - `PATTERNS` 走 `replace`，非全局：`schedule_create` 与 `schedule_edit` 共用的 title 说明在 `tools:sdk` 里出现两次，只有第一处被翻，第二处留英文。`createZhLayer` 现在统一把 `PATTERNS` 转成全局正则，字符串条目转义后同样全局。
+  - 自测加四条断言：write / 只挂 write / edit 的 guidance，以及同一段里重复的 title；三份预设各跑一遍，现共 116 项。
+
+### Changed
+
+- **身份段加回语言与思维链要求**：「你必须使用汉语的思维方式进行思考和推理：思维链（reasoning）内容必须是中文，对用户的回答也使用中文。」2026.11.3 以「翻译本身已经决定输出语言」为由删掉，但汉化换的只是提示词与工具说明，推理用什么语言不由此决定，少了这句思维链会滑回英文。三份身份段一起加回，`文档/机制/身份段.md` 记下这条是有意为之、别再删。自测每个预设加一条断言。
+
+### Removed
+
+- **删掉 npm 发布配置**：`package.json` 的 `publishConfig`（registry 与 `access: public`）与 `prepublishOnly` 钩子都去掉，仓库里不再有 npm 发布相关的元数据与自动步骤。npm 由维护者手动发布，registry 与 `access` 在命令上自己带；`.github/workflows/release.yml` 仍然只建 GitHub Release。
+
 ## [2026.11.4] - 2026-11-04
 
 ### Changed

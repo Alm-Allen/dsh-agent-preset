@@ -114,7 +114,13 @@ dsh-agent-preset/
 
 发布标签使用 `v<package.json version>`，版本必须是合法 semver：日期式版本不写前导零，是 `2026.11.3` 而不是 `2026.11.03`。
 
-推送标签后 `.github/workflows/release.yml` 跑自测并创建 GitHub Release。npm 发布改为手动执行：`npm publish`（`prepublishOnly` 会先跑离线自测）。发布口与 `access: public` 由 `package.json` 的 `publishConfig` 固定，仓库里不放 `.npmrc`。细节见 `文档/机制/npm 发布.md`（该目录不进 git）。
+推送标签后 `.github/workflows/release.yml` 跑自测并创建 GitHub Release。npm 由维护者手动发布：
+
+```sh
+npm publish --access public --registry https://registry.npmjs.org
+```
+
+仓库里不放 `.npmrc`，也没有发布钩子与 `publishConfig`；registry 与 `access` 每次在命令上写。细节见 `文档/机制/npm 发布.md`（该目录不进 git）。
 
 ## 许可证
 

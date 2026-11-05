@@ -170,13 +170,21 @@ export function createZhLayer({ presetKey, prose, patterns, docs, planMode, batc
 		? undefined
 		: new Map([...docs].map(([key, value]) => [collapseDoc(key), value]))
 
+	// 同一段文本里同一句话可能出现多次（schedule_create 与 schedule_edit 共用 TITLE_HELP，
+	// 两段参数说明在一份 tools:sdk 里各出现一次）。非全局替换只翻第一处，后面几处透出英文原文。
+	// PATTERNS 里少数条目直接写句子而不是正则，转义后再取全局，替换语义保持一致。
+	const globalPatterns = patterns.map(([pattern, replacement]) => {
+		if (typeof pattern === 'string') return [new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), replacement]
+		return pattern.global ? [pattern, replacement] : [new RegExp(pattern.source, pattern.flags + 'g'), replacement]
+	})
+
 	// 顺序固定：精确段落、正则、JSDoc、子串。未知文本原样返回
 	const translateText = (text) => {
 		if (typeof text !== 'string' || text.length === 0) return text
 		const exact = prose.get(text)
 		if (exact !== undefined) return exact
 		let translated = text
-		for (const [pattern, replacement] of patterns) translated = translated.replace(pattern, replacement)
+		for (const [pattern, replacement] of globalPatterns) translated = translated.replace(pattern, replacement)
 		if (docs !== undefined && translated.includes('/** ')) {
 			translated = translated.replace(DOC_RE, (whole, body) => {
 				const raw = unescapeDoc(body)

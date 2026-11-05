@@ -36,7 +36,7 @@ const EXECUTION_POLICY_ZH = `可逆且属于当前请求的工作（读取文件
 /** 精确段落映射：英文原文换成中文 */
 const PROSE = new Map([
 	['You are an AI agent powered by DeepSeek Harness.',
-		`你是由 DeepSeek Harness 驱动的 AI Agent。代码、命令、路径、标识符、工具名、参数名和专有名词保持原文，不要翻译。
+		`你是由 DeepSeek Harness 驱动的 AI Agent。你必须使用汉语的思维方式进行思考和推理：思维链（reasoning）内容必须是中文，对用户的回答也使用中文。代码、命令、路径、标识符、工具名、参数名和专有名词保持原文，不要翻译。
 
 ${EXECUTION_POLICY_ZH}
 
@@ -144,13 +144,13 @@ ${EXECUTION_POLICY_ZH}
 	['Use the read tool — not shell commands like cat — to inspect text files. Use offset and limit to continue reading large files.',
 		'用 read 工具——而不是 cat 之类的 shell 命令——查看文本文件。用 offset 和 limit 继续读取大文件。'],
 
-	['Read an existing file before overwriting it with write (the default fs-observation-policy requires it).',
-		'用 write 覆盖已有文件之前先读取它（默认的 fs-observation-policy 要求如此）。'],
-	['Read an existing file before overwriting it with write (the default fs-observation-policy requires it) and prefer edit for targeted changes.',
-		'用 write 工具创建文件或整体重写文件内容——这是**硬性要求**：只要是要把新的文件内容写到磁盘，就必须用 write 工具，不许用 shell 的重定向与 heredoc（`cat > file <<EOF`、`tee`、`printf >`）、`sed -i`、`python -c` 之类方式绕道写文件内容。用 write 覆盖已有文件之前先读取它（默认的 fs-observation-policy 要求如此），定点改动优先用 edit。'],
+	['Read an existing file before overwriting it with write.',
+		'用 write 覆盖已有文件之前先读取它。'],
+	['Read an existing file before overwriting it with write and prefer edit for targeted changes.',
+		'用 write 工具创建文件或整体重写文件内容——这是**硬性要求**：只要是要把新的文件内容写到磁盘，就必须用 write 工具，不许用 shell 的重定向与 heredoc（`cat > file <<EOF`、`tee`、`printf >`）、`sed -i`、`python -c` 之类方式绕道写文件内容。用 write 覆盖已有文件之前先读取它，定点改动优先用 edit。'],
 
-	['Read a file before editing it (the default fs-observation-policy requires it), unless you just created or edited it in this session.',
-		'用 edit 工具对现有 UTF-8 文本文件做定点内容改动——这是**硬性要求**：改动已有文件的内容一律用 edit，不许用 `sed -i`、`perl -pi`、`awk`、shell 重定向之类方式绕道改写内容。编辑之前先读取该文件（默认的 fs-observation-policy 要求如此），除非你在本会话中刚刚创建或编辑过它。'],
+	['Read a file before editing it unless you just created or edited it in this session.',
+		'用 edit 工具对现有 UTF-8 文本文件做定点内容改动——这是**硬性要求**：改动已有文件的内容一律用 edit，不许用 `sed -i`、`perl -pi`、`awk`、shell 重定向之类方式绕道改写内容。编辑之前先读取该文件，除非你在本会话中刚刚创建或编辑过它。'],
 
 	['Use the glob tool — not shell find — to discover files by path pattern.',
 		'用 glob 工具——而不是 shell find——按路径模式发现文件。'],

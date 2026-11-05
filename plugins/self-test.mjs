@@ -42,6 +42,9 @@ function harness() {
 	return { ctx, handlers }
 }
 
+/** 0.2.2-rc.1 里 schedule_create 与 schedule_edit 共用的一段 title 参数说明 */
+const TITLE_DOC = '/** Task name of at most 120 characters in the user\'s language: action plus object. Omit timing, status, ids, and bracketed suffixes. */'
+
 const BASE_ASSEMBLY = {
 	sections: [
 		{ name: 'harness:identity', text: 'You are an AI agent powered by DeepSeek Harness.' },
@@ -149,6 +152,24 @@ for (const [key, apply, batchName] of [
 	const persona = translated.sections.find(section => section.name === 'deployment:persona-prefix')
 	ok(identity?.text.includes('你是由 DeepSeek Harness 驱动的 AI Agent') && identity?.interpolate === false, key + ' 打开时写入中文身份段')
 	ok(identity?.text.includes('回答的表达风格'), key + ' 身份段带表达风格')
+	ok(identity?.text.includes('思维链（reasoning）内容必须是中文'), key + ' 身份段要求中文思维链')
+
+	// 0.2.2-rc.1 把 tool:write / tool:edit 的 guidance 改写成不带原因括注的短句，旧键不再命中
+	const guidanceAssembly = {
+		...BASE_ASSEMBLY,
+		sections: [
+			{ name: 'tool:write', text: 'Read an existing file before overwriting it with write and prefer edit for targeted changes.' },
+			{ name: 'tool:write-solo', text: 'Read an existing file before overwriting it with write.' },
+			{ name: 'tool:edit', text: 'Read a file before editing it unless you just created or edited it in this session.' },
+			{ name: 'tools:sdk', text: TITLE_DOC + '\n' + TITLE_DOC },
+		],
+	}
+	const guidance = await assemble({}, {}, async () => guidanceAssembly)
+	const textOf = name => guidance.sections.find(section => section.name === name)?.text ?? ''
+	ok(textOf('tool:write').includes('覆盖已有文件之前先读取它'), key + ' 翻掉 write 的 guidance')
+	ok(textOf('tool:write-solo').includes('覆盖已有文件之前先读取它'), key + ' 翻掉只挂 write 时的 guidance')
+	ok(textOf('tool:edit').includes('编辑之前先读取该文件'), key + ' 翻掉 edit 的 guidance')
+	equal((textOf('tools:sdk').match(/任务名称/g) ?? []).length, 2, key + ' 同一段里重复出现的参数说明都翻')
 	ok(persona?.text === '', key + ' 打开时清空原生 persona')
 	if (batchName === undefined) {
 		ok(!translated.sections.some(section => section.name === batchName), key + ' 不追加多余的批处理段')
