@@ -198,8 +198,10 @@ export function createZhLayer({ presetKey, prose, patterns, docs, planMode, batc
 		return translated
 	}
 
-	// 只认技能目录的 <system-reminder>：运行时上下文快照不能翻，见 文档/机制/运行时上下文.md
-	const isInjectedBlock = (text) => text.startsWith('<system-reminder>')
+	// 只认白名单里的注入：运行时上下文快照不能翻，见 文档/机制/运行时上下文.md。
+	// Timeline 的优先级通知是另一种 user 注入，按它的固定开头放行。
+	const INJECTED_PREFIXES = ['<system-reminder>', 'Timeline priority update:']
+	const isInjectedBlock = (text) => INJECTED_PREFIXES.some(prefix => text.startsWith(prefix))
 
 	const translateMessage = (message) => {
 		if (message === null || typeof message !== 'object' || message.role !== 'user') return message

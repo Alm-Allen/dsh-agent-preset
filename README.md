@@ -63,7 +63,7 @@ dsh plugin --profile web remove @alm-allen/dsh-yinyu-preset
 
 ## 兼容性
 
-只支持 **dsh 0.2.2-rc.1**（web 与 desktop 的核心包、`dsh-web-app` 都是这一版）。插件通过 `cordis.patch.yml` 完整覆盖三个原生预设，因此升级 DSH 后需要重新核对出货预设，尤其是 `standard`、`ptc`、`cordis` 的插件行；不再为旧版 DSH 保留兼容行或兼容词条。
+只支持 **dsh 0.2.2-rc.3**（web 与 desktop 的核心包、`dsh-web-app` 都是这一版）。插件通过 `cordis.patch.yml` 完整覆盖三个原生预设，因此升级 DSH 后需要重新核对出货预设，尤其是 `standard`、`ptc`、`cordis` 的插件行；不再为旧版 DSH 保留兼容行或兼容词条。
 
 包内没有构建步骤：`plugins/` 与 `cordis.patch.yml` 就是发布产物。
 

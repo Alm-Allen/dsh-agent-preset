@@ -3,11 +3,11 @@
 # 但汉化层由 agent-preset 的配置决定是否生效。
 # 默认：三个开关关闭，预设保持原生。
 #
-# 三个 override 的 config.plugins 逐行取自 dsh 的 shipped 预设，web（0.2.1-rc.5）与 desktop（0.2.2-rc.1）
-# 已逐行对齐，只在 persona 后插入各自的中文化层。两版 shipped 现在完全一致：list_agents 已并入
-# tool-subagent-control 主包，tool-subagent 只写 modelSelection/modelDiscovery，tool-fs 显式关闭
-# apply_patch，ptc 用 tool-executor-ptc。升级 dsh 后要重新对照两版的 presets/*.patch.yml，
-# 差异点见 文档/机制/双版本兼容.md。
+# 三个 override 的 config.plugins 逐行取自 dsh 0.2.2-rc.3 的 shipped 预设，web 与 desktop 的
+# shipped 文件已逐行对齐，只在 persona 后插入各自的中文化层。当前 shipped 的形状：standard 与 ptc
+# 多了 tool-office 行，standard 的 skill-filesystem 带 customSkillDirs（指向上游 dsh-agent-preset 的
+# skills），三者的 tool-subagent-control 都关掉 interrupt；cordis 的 persona 多一句自述。
+# 升级 dsh 后要重新对照 presets/*.patch.yml，差异点见 文档/机制/双版本兼容.md。
 
 - insert:
     - id: agent-preset
@@ -55,6 +55,9 @@
         name: '@deepseek-ai/dsh-tool-schedule'
       - id: skill-filesystem
         name: '@deepseek-ai/dsh-skill-filesystem'
+        config:
+          customSkillDirs:
+            - !!js process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('@deepseek-ai/dsh-agent-preset/package.json')), 'skills')
       - id: tool-skill
         name: '@deepseek-ai/dsh-tool-skill'
       - id: command-goal
@@ -107,6 +110,8 @@
         config:
           - id: tool-subagent-control
             name: '@deepseek-ai/dsh-tool-subagent-control'
+            config:
+              interrupt: false
           - id: tool-subagent
             name: '@deepseek-ai/dsh-tool-subagent'
             config:
@@ -138,6 +143,8 @@
           searchTimeoutMs: 60000
       - id: present
         name: '@deepseek-ai/dsh-tool-present'
+      - id: tool-office
+        name: '@deepseek-ai/dsh-tool-office'
       - id: tool-plugin-manager
         name: '@deepseek-ai/dsh-plugin-manager/tools'
         disabled: !!js "!ctx.get('profileContext')"
@@ -174,7 +181,7 @@
       - id: tool-fs
         name: '@deepseek-ai/dsh-tool-fs'
         config:
-          # Set false to drop the apply_patch tool beside edit.
+          # Set true to add the apply_patch tool beside edit.
           applyPatch: false
       - id: tool-fs-search
         name: '@deepseek-ai/dsh-tool-fs-search'
@@ -238,6 +245,8 @@
         config:
           - id: tool-subagent-control
             name: '@deepseek-ai/dsh-tool-subagent-control'
+            config:
+              interrupt: false
           - id: tool-subagent
             name: '@deepseek-ai/dsh-tool-subagent'
             config:
@@ -273,6 +282,8 @@
         name: '@deepseek-ai/dsh-tool-executor-ptc'
       - id: present
         name: '@deepseek-ai/dsh-tool-present'
+      - id: tool-office
+        name: '@deepseek-ai/dsh-tool-office'
       - id: tool-plugin-manager
         name: '@deepseek-ai/dsh-plugin-manager/tools'
         disabled: true
@@ -286,13 +297,13 @@
     id: cordis
     order: 4
     plugins:
-      # Same persona as `standard`: tool descriptions and the skill catalog carry
-      # the operating detail, and the skills own the preset-authoring rules.
+      # The dsh-doc skill owns plugin implementation and authorization guidance.
       - id: persona
         name: '@deepseek-ai/dsh-persona'
         config:
           prefix: >-
             You are a coding agent powered by the {{model}} model.
+            You help the user customize DeepSeek Harness itself.
       - id: maliang-zh
         name: '@alm-allen/dsh-agent-preset/maliang-zh'
       - id: hide-harness-source
@@ -312,7 +323,7 @@
       - id: tool-fs
         name: '@deepseek-ai/dsh-tool-fs'
         config:
-          # Set false to drop the apply_patch tool beside edit.
+          # Set true to add the apply_patch tool beside edit.
           applyPatch: false
       - id: tool-fs-search
         name: '@deepseek-ai/dsh-tool-fs-search'
@@ -372,6 +383,8 @@
         config:
           - id: tool-subagent-control
             name: '@deepseek-ai/dsh-tool-subagent-control'
+            config:
+              interrupt: false
           - id: tool-subagent
             name: '@deepseek-ai/dsh-tool-subagent'
             config:

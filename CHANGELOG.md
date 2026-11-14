@@ -1,5 +1,33 @@
 # Changelog
 
+## [2026.11.14] - 2026-11-14
+
+### Fixed
+
+- **修掉 rc.3 里成段透出的英文**：`tools:sdk` 的固定说明与 `run_code` 描述、MCP 资源服务器段与三个资源工具、`subagent` 的 continuation 与 structured output 提示、`tool:subagent` 的委托纪律段、`office` 的输出参数与 Python 环境段、`read` 与 `grep` 的新 guidance、`ask_user_question` 的 timed 描述、审批启用段、技能资源提示、web 标签、plan mode 通知、schedule 的 target 说明与变更通知、goal 的收尾与轮次提示。
+- RRULE 示例里的换行写成了字面反斜杠加 n，整条说明不命中；按源码的真换行改写。
+- **补智能体团队的英文**：打开 Agent Teams 后注入的 `team:policy`（rc.3 改成三段，旧键命中不了）、`team_task_list` 的 `owner` 与 `unowned`、`team_task_update` 的 `owner` 三处新措辞，三份汉化层都已覆盖。
+- **补 `apply_patch` 的英文**：`tool-fs` 的 `applyPatch` 默认关闭，打开后模型的 guidance 段、工具描述与 `input` 参数说明会露英文；三份汉化层已补上。
+- 自测加到 239 项：SDK、MCP、run_code、subagent、goal、RRULE、target 七段整段散文在三个预设下各跑一遍；Timeline 的规划段、状态段、委派上下文、进度检查点、优先级通知与 `timeline_*` 工具说明另加了 26 项，cua 的 guidance 段、注入的限额行、PTC 初始化段与工具描述另加了 18 项，`apply_patch` 另加了 6 项，智能体团队的 policy 与三个参数另加了 10 项。
+- **补实验性 cua 的英文**：打开电脑操控开关后注入的 `computer-use:dsh-cua` 段（平台段、五节方法目录、`AX read defaults` 与 `Maximum click holdMs` 两行）、PTC 初始化段，以及 `cua` 工具描述与 `cua_run_code` 程序说明，三份汉化层都已覆盖。方法目录只翻 `— ` 之后的说明，签名、类型定义与代码块原样保留。
+- **补实验性 Timeline 的英文**：打开实验开关后注入的任务树规划段、`timeline:state` 状态段、进度检查点与优先级通知、委派上下文、五个 `timeline_*` 工具的描述与参数、`timeline_tasks` 的默认写法指引，三份汉化层都已覆盖。`agent/pre-step` 的注入白名单从只认 `<system-reminder>` 扩到再认 `Timeline priority update:`。
+
+### Changed
+
+- **同步 dsh 0.2.2-rc.3 的 shipped 预设**。三个 override 照 rc.3 的 shipped 文件重述：
+  - `standard` 与 `ptc` 在 `present` 之后加 `tool-office` 行；
+  - `standard` 的 `skill-filesystem` 加 `customSkillDirs`，用 `!!js` 指向上游 `@deepseek-ai/dsh-agent-preset` 包的 `skills`；
+  - 三个预设的 `tool-subagent-control` 加 `config: interrupt: false`；
+  - `cordis` 的 persona prefix 补上 shipped 的第二句；
+  - ptc 与 cordis 的 `tool-fs` 注释改回 shipped 的措辞。
+- **补 rc.3 的模型可见文本**：office 三个工具的描述与参数说明、`subagent` 族的改写措辞（`subagent`、`list_subagent_models`、`send_message`、`list_agents`、`wait_agent`）、`office` 与 `dsh-doc` 两个技能描述，以及 `subagent:identity` 的 root 与 subagent 自我介绍段（名字是动态的，走正则）。
+- 自测从 116 项增到 158 项：加 rc.3 的 shipped 行断言，以及上面这批文本的翻译断言。
+
+### Docs
+
+- `文档/机制/双版本兼容.md` 重写为 rc.3 基准，记下 shipped 的形状变化与 asar 内 shipped 文件的读法。
+- `AGENTS.md`、`README.md` 的基准更新到 0.2.2-rc.3。
+
 ## [2026.11.5] - 2026-11-05
 
 ### Fixed
