@@ -127,6 +127,11 @@ ok(standard.includes("name: '@deepseek-ai/dsh-tool-office'") && ptc.includes("na
 ok(!cordis.includes("name: '@deepseek-ai/dsh-tool-office'"), '马良不带 tool-office（shipped cordis 没有）')
 ok(cordis.includes('You help the user customize DeepSeek Harness itself.'), '马良重述 shipped 的 persona 第二句')
 
+// 预设里唯一有意偏离 shipped 的一行：time-context 的每次注入都是一条持久 user 消息，与汉化无关
+for (const [label, section] of [['雅言', standard], ['仓颉', ptc], ['马良', cordis]]) {
+	ok(section.includes("name: '@deepseek-ai/dsh-time-context'\n        disabled: true"), label + '禁用 time-context 行，不再注入时间读数')
+}
+
 // 默认值
 equal(PRESET_DEFAULTS, { yayan: false, cangjie: false, maliang: false }, '进程内默认值符合要求')
 equal(getPresetState(), PRESET_DEFAULTS, '进程内镜像初始值正确')

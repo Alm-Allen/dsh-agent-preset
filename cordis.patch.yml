@@ -1,14 +1,19 @@
 # @alm-allen/dsh-agent-preset：三个预设共用一个 bundle。
 # 顶层 agent-preset 行提供插件管理页上的三个开关。三个汉化预设 override 始终存在，
 # 但汉化层由 agent-preset 的配置决定是否生效。
-# 默认：三个开关关闭，预设保持原生。
+# 默认：三个开关关闭，预设只在「禁用 time-context」这一点上与原生出货不同。
 #
 # 三个 override 的 config.plugins 逐行取自 dsh 0.2.2-rc.5 的 shipped 预设（rc.4 与 rc.5 没有改动
 # shipped 预设，与 rc.3 逐字相同），web 与 desktop 的 shipped 文件已逐行对齐，只在 persona 后插入
-# 各自的中文化层。当前 shipped 的形状：standard 与 ptc 多了 tool-office 行，standard 的
-# skill-filesystem 带 customSkillDirs（指向上游 dsh-agent-preset 的 skills），三者的
-# tool-subagent-control 都关掉 interrupt；cordis 的 persona 多一句自述。
+# 各自的中文化层，并把 time-context 行禁用（见下）。当前 shipped 的形状：standard 与 ptc 多了
+# tool-office 行，standard 的 skill-filesystem 带 customSkillDirs（指向上游 dsh-agent-preset 的
+# skills），三者的 tool-subagent-control 都关掉 interrupt；cordis 的 persona 多一句自述。
 # 升级 dsh 后要重新对照 presets/*.patch.yml，差异点见 文档/机制/双版本兼容.md。
+#
+# time-context 一律 disabled: true：它每隔 10 分钟（默认 refreshIntervalMs 600000）往历史里追加
+# 一条「Time sampled while preparing turn …, step …」读数，每个会话第一步必有一条，累积到压缩
+# 为止，与汉化无关。它属于预设的 config.plugins，顶层覆盖匹配不到，只能在这三份 override 里
+# 逐处禁用；升级复核时别当成误删。
 
 # 关掉 dsh-web-app 挂载的 @deepseek-ai/dsh-harness-dev-context：它注册 harness:source 与
 # app:web-surface 两段 section（检出目录说明、Web GUI 定位与改产物须知）和两条运行时上下文。
@@ -42,6 +47,7 @@
           maxBytes: 65536
       - id: time-context
         name: '@deepseek-ai/dsh-time-context'
+        disabled: true
       - id: tool-bash
         name: '@deepseek-ai/dsh-tool-bash'
         disabled: !!js process.platform === 'win32'
@@ -180,6 +186,7 @@
           maxBytes: 65536
       - id: time-context
         name: '@deepseek-ai/dsh-time-context'
+        disabled: true
       - id: tool-bash
         name: '@deepseek-ai/dsh-tool-bash'
         disabled: !!js process.platform === 'win32'
@@ -322,6 +329,7 @@
           maxBytes: 65536
       - id: time-context
         name: '@deepseek-ai/dsh-time-context'
+        disabled: true
       - id: tool-bash
         name: '@deepseek-ai/dsh-tool-bash'
         disabled: !!js process.platform === 'win32'

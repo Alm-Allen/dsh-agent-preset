@@ -12,12 +12,15 @@
 - **复核了 rc.5 的两处行为变化，都不改汉化层**：base 组合删掉 `web.searchProvider`，搜索改按模型路由自动选择（DeepSeek 模型走 Messages 搜索，不按次收费但多耗模型 token）；新增 `CONTENT_REFUSED` 错误码与拒答消息，`web_search` 的激活条件改成 `searchReady(llmProvider)`。运行时错误串与 `tool-cordis` 的服务 API 目录按既有策略不翻。
 - `self-test` 241 项在 rc.5 上全过；`audit-coverage` 三份（雅言 106、仓颉 105、马良 106 条未覆盖）与 rc.3 源码树上的结果逐条相同，没有新增模型可见文本。
 - **关掉 `dsh-harness-dev-context`**：`cordis.patch.yml` 顶层把 `dsh-web-app` bundle 挂的这一行整行 `disabled: true`。系统提示里少 `harness:source` 与 `app:web-surface` 两段（检出目录说明、Web GUI 定位与改产物须知），运行时上下文少检出路径与 GUI URL 两条。该插件在 0.2.2-rc.5 上没有 config 可调，只能整行禁用；`hide-harness-source` 留在三个预设里做重开时的兜底。
+- **三个预设都禁用 `@deepseek-ai/dsh-time-context`**：它每隔 10 分钟（默认 `refreshIntervalMs: 600000`）在 `agent/pre-step` 里往会话历史追加一条持久 user 消息，内容是 `Time sampled while preparing turn …, step …` 加浏览器时区与经过时长，每个会话第一步必有一条，累积到压缩遮蔽为止。它属于预设的 `config.plugins`，profile 层顶部的 `- id: time-context / disabled: true` 匹配不到（官方升级指南 v0.2.0-rc.2 已说明），所以在三份 override 里逐处写成 `disabled: true`。代价是关闭汉化开关时预设也不再逐字原生。三份汉化层的「浏览器时区」词条原样保留，但它们本来就不在注入白名单里，重开 time-context 也不会命中——要汉化那三行得把 `Time sampled while preparing` 加进 `INJECTED_PREFIXES`。自测加三条断言盯住这处禁用。
 - **身份段删掉工作目录那句**：三份汉化层的 identity 段不再写「当前工作目录由每一轮用户消息里的运行时上下文给出，形如 `Current working directory: …`」。目录本来就由 `working-directory:current` 上下文携带，这句每轮占一行提示词却不带来新信息。
 
 ### Docs
 
+- **版本基准定为唯一 rc**：npm 上 `latest`/`next` 都是 `0.2.2-rc.5`，`alpha` 停在 `0.2.2-alpha.3`；同一 base 版本下 `alpha` 排在 `rc` 之前，所以最新 α 比最新 rc 旧，按新规则基准只有 rc.5。`AGENTS.md` 加「版本基准只跟新的那两个」，`README.md` 兼容性一节补判定说明，`文档/机制/双版本兼容.md` 新增「基准怎么定」一节并记下三条 `npm view @deepseek-ai/dsh dist-tags --json` 的查法。
 - `文档/机制/双版本兼容.md` 基准改到 rc.5，补「rc.5 变了什么」一节与本次复核数据。
 - `AGENTS.md`、`README.md`、`cordis.patch.yml` 顶注、`self-test.mjs` 注释同步到 rc.5。
+- 补记 `time-context` 的禁用：`README.md` 的「使用」与「兼容性」两节、`AGENTS.md` 的约定与偏离两条、`文档/机制/双版本兼容.md` 的「有意偏离 shipped 的三处」与升级复核清单。
 - `文档/机制/运行时上下文.md` 的「检出目录那条由 hide-harness-source 遮蔽」改写成禁用 `dsh-harness-dev-context` 的说明；`文档/机制/双版本兼容.md` 记下这处 bundle 层偏离。
 
 ## [2026.11.14] - 2026-11-14

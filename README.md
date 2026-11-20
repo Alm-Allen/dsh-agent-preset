@@ -58,14 +58,18 @@ dsh plugin --profile web remove @alm-allen/dsh-yinyu-preset
 
 打开 **插件 → 智能体预设**，按需切换：
 
-- **雅言、仓颉、马良** 是原生预设替代，默认关闭。关闭时对应预设与当前 DSH 出货版本逐项一致。
+- **雅言、仓颉、马良** 是原生预设替代，默认关闭。关闭时对应预设与当前 DSH 出货版本逐项一致，唯一例外是三个预设里的 `time-context` 始终被禁用。
 - 开关即时保存。新会话使用当前预设列表；已有会话继续使用创建时选中的预设版本。
 
 ## 兼容性
 
 只支持 **dsh 0.2.2-rc.5**（web 与 desktop 的核心包、`dsh-web-app` 都是这一版）。rc.4 与 rc.5 没有改动 shipped 预设，三个被覆盖的预设与 rc.3 逐字相同。插件通过 `cordis.patch.yml` 完整覆盖三个原生预设，因此升级 DSH 后需要重新核对出货预设，尤其是 `standard`、`ptc`、`cordis` 的插件行；不再为旧版 DSH 保留兼容行或兼容词条。
 
+版本基准只跟新的那两个：npm 上最新的 rc 与最新的 α。今天 `latest`/`next` 都是 0.2.2-rc.5，`alpha` 停在 0.2.2-alpha.3——同一个 base 版本下 `alpha` 排在 `rc` 之前，所以最新 α 比 rc 旧，基准只剩 rc.5。
+
 插件还会在 bundle 层把 `dsh-web-app` 挂的 `@deepseek-ai/dsh-harness-dev-context` 整行禁用（`cordis.patch.yml` 顶层的 `- id: harness-dev-context` 两行）：它注册的检出目录说明、Web GUI 定位与改产物须知两段 section，以及检出路径与 GUI URL 两条运行时上下文，都与汉化无关。要恢复，删掉那两行。
+
+三个原生预设里的 `@deepseek-ai/dsh-time-context` 也一律禁用（三处 `disabled: true`）。它每隔 10 分钟（默认 `refreshIntervalMs: 600000`）往会话历史追加一条 `Time sampled while preparing turn …, step …` 读数，每个会话第一步必有一条，累积到压缩为止，与汉化无关。要恢复时间读数，删掉三处 `disabled: true`。
 
 包内没有构建步骤：`plugins/` 与 `cordis.patch.yml` 就是发布产物。
 
@@ -78,7 +82,7 @@ npm install
 npm test        # 等价于 node plugins/self-test.mjs
 ```
 
-自测覆盖包清单、三个预设与 shipped 的逐行对齐、开关默认值、汉化层关闭直通与开启替换、检出目录遮蔽，以及浏览器客户端注册协议。
+自测覆盖包清单、三个预设与 shipped 的逐行对齐（含 `time-context` 的禁用）、开关默认值、汉化层关闭直通与开启替换、检出目录遮蔽，以及浏览器客户端注册协议。
 
 机制说明与踩坑记录在 `文档/`（本目录不进 git 追踪）；代码注释只留结论并指回对应那篇。
 
@@ -94,7 +98,7 @@ node --check plugins/client.js
 ```text
 dsh-agent-preset/
 ├── package.json              插件清单、bundle patch、web 客户端入口
-├── cordis.patch.yml          主插件 + 三个原生预设覆盖 + 禁用 harness-dev-context
+├── cordis.patch.yml          主插件 + 三个原生预设覆盖 + 禁用 harness-dev-context 与 time-context
 ├── plugins/
 │   ├── agent-preset.mjs      开关服务端：把三个开关发布到进程内镜像
 │   ├── preset-state.mjs      三个开关的进程内镜像
