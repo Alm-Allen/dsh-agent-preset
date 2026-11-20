@@ -46,16 +46,14 @@ ${EXECUTION_POLICY_ZH}
 - 说完就停：不复述问题、不写铺垫、不在结尾重复已经说过的结论。
 - 不用 emoji、箭头、★ 这类装饰符号；加粗只给关键结论，不要整段加粗。
 
-当前工作目录由每一轮用户消息里的运行时上下文给出，形如 \`Current working directory: "C:\\Users\\you\\project"\`，以那条为准；需要确认或改变当前目录时用 working_directory 工具（或在 shell 里 \`pwd\`）。
-
 批量化调用工具：把当前这一步该做的调用**在同一个 assistant 消息里一起发出**，不要等前一个结果再发下一个。
 - 独立调用可以并行：互不依赖的读取、搜索、glob、查询，以及互不依赖的写操作，一起发出；运行时会让只读调用并发执行，变更类调用按提交顺序单独执行。
 - 有依赖的必须分轮：下一个调用的参数取决于上一个的结果时，等结果回来再发。
 - 不要为了"稳妥"逐个发：一轮能发的独立调用拆成多轮，只是白等轮次、多花 token。
 - 有些工具的描述里写着"必须在同一批发出""不要逐个调用"——那是这种模式的直接要求，照做；"在程序内部调用""用 Promise.all"是本模式用不到的措辞，不用去找它。`],
-	// ↑ `{{cwd}}` 只是本插件内部的占位符，写入提示词之前由 `identityText()` 换成
-	// `working-directory:current` 运行时上下文里的真实路径。harness 早已没有 `cwd` 变量，
-	// 原样带着它进提示词会让整份系统提示词以未注册变量失败——详见 `CWD_PLACEHOLDER`。
+	// ↑ 身份段正文里**没有**工作目录：路径随项目而变，写进 order -1000 的第一段会让整份
+	// 系统提示词的前缀缓存从头失效。当前目录由 working-directory:current 运行时上下文
+	// （用户消息）携带，模型照样拿得到——详见 `identityText()`。
 
 	['Tokens prefixed with @ are workspace paths the user explicitly referenced, relative to the workspace root. A trailing slash marks a directory: list it when its contents matter. Anything else is a file: use the read tool when its contents are needed, and do not claim to have inspected it before reading. @"..." quotes a path containing spaces.',
 		'以 @ 开头的 token 是用户显式引用的工作区路径，相对于工作区根目录。以斜杠结尾表示目录：目录内容重要时列出它。其他情况是文件：需要其内容时用 read 工具读取，不要在读取之前声称已经检查过它。@"..." 引用的是包含空格的路径。'],
@@ -1100,8 +1098,8 @@ send_message 的目标用 spawn_teammate 或 list_agents 返回的 target；分�
 		'按 id 查看一个计划任务。'],
 	['Update, pause, resume, or delete one scheduled task by id. Deleting does not retract queued messages.',
 		'按 id 更新、暂停、恢复或删除一个计划任务。删除不会撤回已排队的消息。'],
-	['Supported RFC 5545 subset: one DTSTART line, a newline, and one RRULE line. DTSTART ends in Z for UTC or carries TZID with an IANA time zone; a fixed offset such as UTC+5 is Etc/GMT-5, with the sign reversed. DTSTART must name an existing local time. A TZID rule keeps local clock time across daylight-saving changes; generated nonexistent local times are skipped, and repeated ones occur once, at the earlier instant. DTSTART may be in the past; delivery starts with the first occurrence after creation. A one-time delivery is RRULE:FREQ=DAILY;COUNT=1. No SECONDLY; BYSECOND takes one value. COUNT is at most 1000; use UNTIL for longer rules. MINUTELY and HOURLY accept no BY parts, so select clock times with DAILY or WEEKLY plus BYHOUR and BYMINUTE. BYMONTHDAY and ordinal BYDAY require MONTHLY or YEARLY; BYYEARDAY and BYWEEKNO require YEARLY. Ordinal BYDAY cannot combine with BYWEEKNO. Each FREQ period allows at most 10080 candidates before BYSETPOS, which accepts at most 31 values. UNTIL is a UTC instant ending in Z. Example: "DTSTART;TZID=Asia/Singapore:20260901T080000\nRRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1"',
-		'支持的 RFC 5545 子集：一行 DTSTART、一个换行、一行 RRULE。DTSTART 以 Z 结尾表示 UTC，或用 TZID 携带 IANA 时区；固定偏移（如 UTC+5）写成 Etc/GMT-5，符号相反。DTSTART 必须是一个存在的本地时间。TZID 规则在夏令时变化时保持本地钟表时间；生成的不存在本地时间会被跳过，重复的本地时间只在较早的时刻触发一次。DTSTART 可以在过去；投递从创建后的第一次触发开始。一次性投递是 RRULE:FREQ=DAILY;COUNT=1。没有 SECONDLY；BYSECOND 只取一个值。COUNT 最多 1000；更长的规则用 UNTIL。MINUTELY 与 HOURLY 不接受 BY 部件，所以用 DAILY 或 WEEKLY 加 BYHOUR、BYMINUTE 选择钟点。BYMONTHDAY 与序数 BYDAY 需要 MONTHLY 或 YEARLY；BYYEARDAY 与 BYWEEKNO 需要 YEARLY。序数 BYDAY 不能与 BYWEEKNO 组合。每个 FREQ 周期在 BYSETPOS 之前最多允许 10080 个候选，BYSETPOS 最多接受 31 个值。UNTIL 是一个以 Z 结尾的 UTC 时刻。示例："DTSTART;TZID=Asia/Singapore:20260901T080000\nRRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1"'],
+	['Supported RFC 5545 subset: one DTSTART line, a newline, and one RRULE line. DTSTART ends in Z for UTC or carries TZID with an IANA time zone; a fixed offset such as UTC+5 is Etc/GMT-5, with the sign reversed. DTSTART must name an existing local time. A TZID rule keeps local clock time across daylight-saving changes; generated nonexistent local times are skipped, and repeated ones occur once, at the earlier instant. DTSTART may be in the past; delivery starts with the first occurrence after creation. A one-time delivery is RRULE:FREQ=DAILY;COUNT=1. No SECONDLY; BYSECOND takes one value. COUNT is at most 1000; use UNTIL for longer rules. MINUTELY and HOURLY accept no BY parts, so select clock times with DAILY or WEEKLY plus BYHOUR and BYMINUTE. BYMONTHDAY and ordinal BYDAY require MONTHLY or YEARLY; BYYEARDAY and BYWEEKNO require YEARLY. Ordinal BYDAY cannot combine with BYWEEKNO. Each FREQ period allows at most 10080 candidates before BYSETPOS, which accepts at most 31 values. UNTIL is a UTC instant ending in Z. Example: "DTSTART;TZID=Asia/Singapore:20260901T080000\\nRRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1"',
+		'支持的 RFC 5545 子集：一行 DTSTART、一个换行、一行 RRULE。DTSTART 以 Z 结尾表示 UTC，或用 TZID 携带 IANA 时区；固定偏移（如 UTC+5）写成 Etc/GMT-5，符号相反。DTSTART 必须是一个存在的本地时间。TZID 规则在夏令时变化时保持本地钟表时间；生成的不存在本地时间会被跳过，重复的本地时间只在较早的时刻触发一次。DTSTART 可以在过去；投递从创建后的第一次触发开始。一次性投递是 RRULE:FREQ=DAILY;COUNT=1。没有 SECONDLY；BYSECOND 只取一个值。COUNT 最多 1000；更长的规则用 UNTIL。MINUTELY 与 HOURLY 不接受 BY 部件，所以用 DAILY 或 WEEKLY 加 BYHOUR、BYMINUTE 选择钟点。BYMONTHDAY 与序数 BYDAY 需要 MONTHLY 或 YEARLY；BYYEARDAY 与 BYWEEKNO 需要 YEARLY。序数 BYDAY 不能与 BYWEEKNO 组合。每个 FREQ 周期在 BYSETPOS 之前最多允许 10080 个候选，BYSETPOS 最多接受 31 个值。UNTIL 是一个以 Z 结尾的 UTC 时刻。示例："DTSTART;TZID=Asia/Singapore:20260901T080000\\nRRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1"'],
 	['Instruction delivered at each occurrence.',
 		'每次触发时投递的指令。'],
 	['true for active tasks only; false for paused and ended tasks only; omitted for all tasks.',

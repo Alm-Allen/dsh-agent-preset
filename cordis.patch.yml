@@ -3,11 +3,19 @@
 # 但汉化层由 agent-preset 的配置决定是否生效。
 # 默认：三个开关关闭，预设保持原生。
 #
-# 三个 override 的 config.plugins 逐行取自 dsh 0.2.2-rc.3 的 shipped 预设，web 与 desktop 的
-# shipped 文件已逐行对齐，只在 persona 后插入各自的中文化层。当前 shipped 的形状：standard 与 ptc
-# 多了 tool-office 行，standard 的 skill-filesystem 带 customSkillDirs（指向上游 dsh-agent-preset 的
-# skills），三者的 tool-subagent-control 都关掉 interrupt；cordis 的 persona 多一句自述。
+# 三个 override 的 config.plugins 逐行取自 dsh 0.2.2-rc.5 的 shipped 预设（rc.4 与 rc.5 没有改动
+# shipped 预设，与 rc.3 逐字相同），web 与 desktop 的 shipped 文件已逐行对齐，只在 persona 后插入
+# 各自的中文化层。当前 shipped 的形状：standard 与 ptc 多了 tool-office 行，standard 的
+# skill-filesystem 带 customSkillDirs（指向上游 dsh-agent-preset 的 skills），三者的
+# tool-subagent-control 都关掉 interrupt；cordis 的 persona 多一句自述。
 # 升级 dsh 后要重新对照 presets/*.patch.yml，差异点见 文档/机制/双版本兼容.md。
+
+# 关掉 dsh-web-app 挂载的 @deepseek-ai/dsh-harness-dev-context：它注册 harness:source 与
+# app:web-surface 两段 section（检出目录说明、Web GUI 定位与改产物须知）和两条运行时上下文。
+# 本包只做汉化，不带改 GUI 的场景，这两段是纯开销；该插件在 0.2.2-rc.5 上没有 config 可调，
+# 只能整行禁用。本插件的 patch 排在 profile 的 bundles 之后，能覆盖 dsh-web-app 那一行。
+- id: harness-dev-context
+  disabled: true
 
 - insert:
     - id: agent-preset

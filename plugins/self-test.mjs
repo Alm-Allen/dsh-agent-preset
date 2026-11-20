@@ -42,7 +42,7 @@ function harness() {
 	return { ctx, handlers }
 }
 
-/** 当前基准（0.2.2-rc.3）里 schedule_create 与 schedule_edit 共用的一段 title 参数说明 */
+/** 当前基准（0.2.2-rc.5）里 schedule_create 与 schedule_edit 共用的一段 title 参数说明 */
 const TITLE_DOC = '/** Task name of at most 120 characters in the user\'s language: action plus object. Omit timing, status, ids, and bracketed suffixes. */'
 
 const BASE_ASSEMBLY = {
@@ -95,6 +95,7 @@ for (const [key, value] of Object.entries(manifest.exports ?? {})) {
 const patch = await read('cordis.patch.yml')
 const controller = block(patch, '- id: agent-preset', '- id: preset-standard')
 ok((controller.match(/- id: agent-preset/g) ?? []).length === 1, '只有一个 agent-preset 控制行')
+ok(patch.includes('- id: harness-dev-context\n  disabled: true'), '关掉 dsh-harness-dev-context：检出目录与 Web GUI 两段 section、两条上下文一并消失')
 const standard = block(patch, '- id: preset-standard', '- id: preset-ptc')
 const ptc = block(patch, '- id: preset-ptc', '- id: preset-cordis')
 const cordis = block(patch, '- id: preset-cordis')
@@ -107,7 +108,7 @@ for (const [label, section] of [['雅言', standard], ['仓颉', ptc], ['马良'
 	equal((section.match(/name: '@alm-allen\/dsh-agent-preset\/hide-harness-source'/g) ?? []).length, 1, label + '挂载检出目录遮蔽行')
 }
 
-// 预设行逐行重述 0.2.2-rc.3 的 shipped 文件
+// 预设行逐行重述 0.2.2-rc.5 的 shipped 文件（rc.4 与 rc.5 没有改动，与 rc.3 相同）
 for (const [label, section] of [['雅言', standard], ['仓颉', ptc], ['马良', cordis]]) {
 	ok(!section.includes('list-agents'), label + '不再挂 list_agents 垫片行（主包已注册该工具）')
 	ok(section.includes('modelSelection: true') && section.includes('modelDiscovery: true') && !section.includes('modelSelectionSettings'), label + '只写当前版本的模型选择键')
@@ -116,7 +117,7 @@ for (const [label, section] of [['雅言', standard], ['仓颉', ptc], ['马良'
 ok(ptc.includes("name: '@deepseek-ai/dsh-tool-executor-ptc'") && !ptc.includes('dsh-agent-tool-presentation'), '仓颉用 PTC 执行器而不是旧的呈现转发层')
 ok(standard.includes("disabled: !!js \"!ctx.get('profileContext')\"") && !standard.includes('id: tool-plugin-manager\n        name: \'@deepseek-ai/dsh-plugin-manager/tools\'\n        disabled: true'), '雅言的插件管理工具跟随 shipped 的 profileContext 开关')
 
-// 0.2.2-rc.3 的 shipped 形状：standard 带 customSkillDirs、standard 与 ptc 多 tool-office、三份都关 interrupt
+// 0.2.2-rc.5 的 shipped 形状（沿用 rc.3）：standard 带 customSkillDirs、standard 与 ptc 多 tool-office、三份都关 interrupt
 for (const [label, section] of [['雅言', standard], ['仓颉', ptc], ['马良', cordis]]) {
 	ok(section.includes('interrupt: false'), label + '重述 shipped 的 interrupt: false')
 }
@@ -379,7 +380,7 @@ ok(commonSource.includes('isPresetEnabled(presetKey)'), '公共层按预设开�
 		["Execute a TypeScript program against the available tools. Takes two required arguments: `code`, the BODY of an async function (erasable syntax only; top-level `await` and `return` work), and `description`, a short summary of what the program does. Call tools as `await tools.name(args)` per the declarations in the system prompt. Show selected text and images with inspect(...values).", 'run_code 工具描述'],
 		["Start independent delegations with `subagent` or `subagent_fork` together in one assistant message and continue useful work while they run. When only waiting for their results remains, end your turn instead of sleeping or polling; the next result starts a new turn. Collect the subagent results required to complete the task before giving the user a final answer.\n\nBash, formatters, code generators, and scripts can overwrite concurrent edits without conflict detection; coordinate their changes explicitly. The agent integrating the work must review the final diff and run relevant tests.", 'subagent 委托纪律段'],
 		["<goal_complete>\nObjective: \"ship it\"\nThe goal is marked complete and this autonomous run is ending. Write the closing message to the user now: state the outcome, summarize what was done and how it was verified, and point to the concrete results (files, commits, or other artifacts). Report only what earlier rounds and tool results in this session actually establish; when a detail is not in the session, say so instead of inventing it. Note anything the user should review or do next. Address the user directly. Do not call any more tools in this run; further work waits for the user's next instruction.\n</goal_complete>", 'goal 完成的收尾提示'],
-		["Supported RFC 5545 subset: one DTSTART line, a newline, and one RRULE line. DTSTART ends in Z for UTC or carries TZID with an IANA time zone; a fixed offset such as UTC+5 is Etc/GMT-5, with the sign reversed. DTSTART must name an existing local time. A TZID rule keeps local clock time across daylight-saving changes; generated nonexistent local times are skipped, and repeated ones occur once, at the earlier instant. DTSTART may be in the past; delivery starts with the first occurrence after creation. A one-time delivery is RRULE:FREQ=DAILY;COUNT=1. No SECONDLY; BYSECOND takes one value. COUNT is at most 1000; use UNTIL for longer rules. MINUTELY and HOURLY accept no BY parts, so select clock times with DAILY or WEEKLY plus BYHOUR and BYMINUTE. BYMONTHDAY and ordinal BYDAY require MONTHLY or YEARLY; BYYEARDAY and BYWEEKNO require YEARLY. Ordinal BYDAY cannot combine with BYWEEKNO. Each FREQ period allows at most 10080 candidates before BYSETPOS, which accepts at most 31 values. UNTIL is a UTC instant ending in Z. Example: \"DTSTART;TZID=Asia/Singapore:20260901T080000\nRRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1\"", 'schedule 的 RRULE 说明'],
+		["Supported RFC 5545 subset: one DTSTART line, a newline, and one RRULE line. DTSTART ends in Z for UTC or carries TZID with an IANA time zone; a fixed offset such as UTC+5 is Etc/GMT-5, with the sign reversed. DTSTART must name an existing local time. A TZID rule keeps local clock time across daylight-saving changes; generated nonexistent local times are skipped, and repeated ones occur once, at the earlier instant. DTSTART may be in the past; delivery starts with the first occurrence after creation. A one-time delivery is RRULE:FREQ=DAILY;COUNT=1. No SECONDLY; BYSECOND takes one value. COUNT is at most 1000; use UNTIL for longer rules. MINUTELY and HOURLY accept no BY parts, so select clock times with DAILY or WEEKLY plus BYHOUR and BYMINUTE. BYMONTHDAY and ordinal BYDAY require MONTHLY or YEARLY; BYYEARDAY and BYWEEKNO require YEARLY. Ordinal BYDAY cannot combine with BYWEEKNO. Each FREQ period allows at most 10080 candidates before BYSETPOS, which accepts at most 31 values. UNTIL is a UTC instant ending in Z. Example: \"DTSTART;TZID=Asia/Singapore:20260901T080000\\nRRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1\"", 'schedule 的 RRULE 说明'],
 		["this_session delivers to this session; new_once delivers to the same new session every time, opened at the first delivery; new opens a different new session for every delivery, at most once every 5 minutes. New sessions use this session's working directory and preset. With this_session or new_once, a delivery waits until the previous one finishes, and only the latest occurrence that passed meanwhile is delivered. Use this_session for reminders and for follow-ups to this conversation; use new_once or new for independent work, such as a recurring report, and whenever the user asks for a new conversation.", 'schedule 的 target 说明'],
 	]
 
@@ -409,6 +410,8 @@ ok(commonSource.includes('isPresetEnabled(presetKey)'), '公共层按预设开�
 			ok(probe?.text !== en, key + ' 翻掉 ' + label)
 		}
 	}
+	// RRULE 的示例在 dsh 源码里是字面反斜杠加 n；键里写成真换行就整段不命中（rc.5 复核时踩过）。
+	ok(PARAGRAPHS[5][0].includes('20260901T080000\\nRRULE'), 'RRULE 示例用字面反斜杠加 n')
 	// subagent 的自我介绍段：agent 名字由 harness 注入，按模式匹配
 	setPresetState({ yayan: false, cangjie: false, maliang: true })
 	{

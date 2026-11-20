@@ -63,7 +63,9 @@ dsh plugin --profile web remove @alm-allen/dsh-yinyu-preset
 
 ## 兼容性
 
-只支持 **dsh 0.2.2-rc.3**（web 与 desktop 的核心包、`dsh-web-app` 都是这一版）。插件通过 `cordis.patch.yml` 完整覆盖三个原生预设，因此升级 DSH 后需要重新核对出货预设，尤其是 `standard`、`ptc`、`cordis` 的插件行；不再为旧版 DSH 保留兼容行或兼容词条。
+只支持 **dsh 0.2.2-rc.5**（web 与 desktop 的核心包、`dsh-web-app` 都是这一版）。rc.4 与 rc.5 没有改动 shipped 预设，三个被覆盖的预设与 rc.3 逐字相同。插件通过 `cordis.patch.yml` 完整覆盖三个原生预设，因此升级 DSH 后需要重新核对出货预设，尤其是 `standard`、`ptc`、`cordis` 的插件行；不再为旧版 DSH 保留兼容行或兼容词条。
+
+插件还会在 bundle 层把 `dsh-web-app` 挂的 `@deepseek-ai/dsh-harness-dev-context` 整行禁用（`cordis.patch.yml` 顶层的 `- id: harness-dev-context` 两行）：它注册的检出目录说明、Web GUI 定位与改产物须知两段 section，以及检出路径与 GUI URL 两条运行时上下文，都与汉化无关。要恢复，删掉那两行。
 
 包内没有构建步骤：`plugins/` 与 `cordis.patch.yml` 就是发布产物。
 
@@ -92,7 +94,7 @@ node --check plugins/client.js
 ```text
 dsh-agent-preset/
 ├── package.json              插件清单、bundle patch、web 客户端入口
-├── cordis.patch.yml          主插件 + 三个原生预设覆盖
+├── cordis.patch.yml          主插件 + 三个原生预设覆盖 + 禁用 harness-dev-context
 ├── plugins/
 │   ├── agent-preset.mjs      开关服务端：把三个开关发布到进程内镜像
 │   ├── preset-state.mjs      三个开关的进程内镜像

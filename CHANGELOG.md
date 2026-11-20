@@ -1,5 +1,25 @@
 # Changelog
 
+## [2026.11.20] - 2026-11-20
+
+### Fixed
+
+- **修掉 `schedule` 的 RRULE 说明**：示例里的 \n 在 dsh 源码里是字面反斜杠加 n，三份表的键写成了真换行，`schedule_create` 与 `schedule_edit` 的 `rrule` 参数说明在三个预设下都没命中，原生 schema 与 PTC 的 JSDoc 两条路径都透英文。九处（三份表的键与译文、自测用例）一并改正，用源码求值后的文本实测命中；自测加一条断言盯住这个转义。
+
+### Changed
+
+- **基准升到 dsh 0.2.2-rc.5**。rc.4 与 rc.5 没有改动 shipped 预设：`standard`、`ptc`、`cordis`、`minimal` 四个 patch.yml 与 rc.3 逐字相同，`cordis.patch.yml` 的三个 override 原样保留。逐行比对三个 override 与 rc.5 shipped（剔除四个汉化层行）为 0 差异；桌面版 0.2.2-rc.5 的 `app.asar` 内出货副本与源码逐字一致。
+- **复核了 rc.5 的两处行为变化，都不改汉化层**：base 组合删掉 `web.searchProvider`，搜索改按模型路由自动选择（DeepSeek 模型走 Messages 搜索，不按次收费但多耗模型 token）；新增 `CONTENT_REFUSED` 错误码与拒答消息，`web_search` 的激活条件改成 `searchReady(llmProvider)`。运行时错误串与 `tool-cordis` 的服务 API 目录按既有策略不翻。
+- `self-test` 241 项在 rc.5 上全过；`audit-coverage` 三份（雅言 106、仓颉 105、马良 106 条未覆盖）与 rc.3 源码树上的结果逐条相同，没有新增模型可见文本。
+- **关掉 `dsh-harness-dev-context`**：`cordis.patch.yml` 顶层把 `dsh-web-app` bundle 挂的这一行整行 `disabled: true`。系统提示里少 `harness:source` 与 `app:web-surface` 两段（检出目录说明、Web GUI 定位与改产物须知），运行时上下文少检出路径与 GUI URL 两条。该插件在 0.2.2-rc.5 上没有 config 可调，只能整行禁用；`hide-harness-source` 留在三个预设里做重开时的兜底。
+- **身份段删掉工作目录那句**：三份汉化层的 identity 段不再写「当前工作目录由每一轮用户消息里的运行时上下文给出，形如 `Current working directory: …`」。目录本来就由 `working-directory:current` 上下文携带，这句每轮占一行提示词却不带来新信息。
+
+### Docs
+
+- `文档/机制/双版本兼容.md` 基准改到 rc.5，补「rc.5 变了什么」一节与本次复核数据。
+- `AGENTS.md`、`README.md`、`cordis.patch.yml` 顶注、`self-test.mjs` 注释同步到 rc.5。
+- `文档/机制/运行时上下文.md` 的「检出目录那条由 hide-harness-source 遮蔽」改写成禁用 `dsh-harness-dev-context` 的说明；`文档/机制/双版本兼容.md` 记下这处 bundle 层偏离。
+
 ## [2026.11.14] - 2026-11-14
 
 ### Fixed
